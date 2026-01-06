@@ -1,9 +1,11 @@
 // data/calendarData.js
-// Final Fix: Remove decimal points from dates (Integer Only)
+// Update: Date Format changed to Abbreviated Day + Short Year e.g., "(อ.) 06.01.26"
 
 const biblicalEvents = require('./biblicalEvents');
 
 const daysOfWeek = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+// เพิ่มชุดชื่อวันแบบย่อ (มีวงเล็บตามต้องการ)
+const daysOfWeekAbbr = ["(อา.)", "(จ.)", "(อ.)", "(พ.)", "(พฤ.)", "(ศ.)", "(ส.)"];
 
 const monthNames = [
     "เดือนที่ 1 อาบิบ (אביב)", "เดือนที่ 2 ศิฟ (זיו)", "เดือนที่ 3 สิวัน (סיוון)",
@@ -40,7 +42,7 @@ function getCalendarData(selectedYear) {
         const monthNumber = index + 1;
         let monthNameInfo = monthNames[index];
         if (newMoons.length === 12 && monthNumber === 12) {
-             monthNameInfo = "เดือนที่ 12 อาดาร์ (אדר)"; 
+             monthNameInfo = "เดือนที่ 12 อาบิบ (אביב)"; 
         }
 
         let endDateStr = newMoons[index + 1];
@@ -62,9 +64,11 @@ function getCalendarData(selectedYear) {
         while (current <= end) {
             const d = String(current.getDate()).padStart(2, '0');
             const m = String(current.getMonth() + 1).padStart(2, '0');
-            const y = String(current.getFullYear()).slice(-2);
             const fullYear = current.getFullYear();
+            const shortYear = String(fullYear).slice(-2); // ปีแบบ 2 หลัก (เช่น 26)
+            
             const dayName = daysOfWeek[current.getDay()];
+            const dayAbbr = daysOfWeekAbbr[current.getDay()]; // วันแบบย่อ (เช่น (อ.))
 
             let phaseItems = []; 
             let isShabbath = false;
@@ -95,7 +99,8 @@ function getCalendarData(selectedYear) {
             const historicalEvents = biblicalEvents[eventKey] || [];
 
             calendarData.push({
-                date: `${d}.${m}.${y}`,
+                // --- UPDATE: ใช้รูปแบบย่อ (อ.) 06.01.26 ---
+                date: `${dayAbbr} ${d}.${m}.${shortYear}`,
                 gregorianDate: `${fullYear}-${m}-${d}`,
                 dayName: dayName,
                 lunar: {
@@ -116,14 +121,13 @@ function getCalendarData(selectedYear) {
 }
 
 // ==========================================
-// 🧠 Algorithm: Gregorian to Jewish (Corrected)
+// 🧠 Algorithm: Gregorian to Jewish
 // ==========================================
 
 function gregorianToJD(year, month, day) {
     if (month <= 2) { year -= 1; month += 12; }
     const A = Math.floor(year / 100);
     const B = 2 - A + Math.floor(A / 4);
-    // Return JD as float (ends in .5)
     return Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + day + B - 1524.5;
 }
 
@@ -193,7 +197,6 @@ function g2j(date) {
         mIndex++;
     }
 
-    // *** FIX: เพิ่ม Math.floor เพื่อตัดเศษ .5 ทิ้ง ***
     const hDay = Math.floor(daysRemaining + 1); 
     const isLeap = isLeapYear(hYear);
 
@@ -218,6 +221,7 @@ function convertDate(dateStr) {
     const d = String(targetDate.getDate()).padStart(2, '0');
     const m = String(targetDate.getMonth() + 1).padStart(2, '0');
     const y = targetDate.getFullYear();
+    const shortYear = String(y).slice(-2);
     const formattedDate = `${y}-${m}-${d}`;
 
     const yearsToCheck = [String(targetYear - 1), String(targetYear)];
@@ -266,7 +270,8 @@ function convertDate(dateStr) {
     if (monthNum === 12 && lunarDay === 14) phaseItems.push("✨ ปูริม");
 
     return {
-        date: `${String(targetDate.getDate()).padStart(2,'0')}.${String(targetDate.getMonth()+1).padStart(2,'0')}.${String(y).slice(-2)}`,
+        // --- UPDATE: ใช้รูปแบบย่อ (อ.) 06.01.26 ในส่วน Convert ด้วย ---
+        date: `${daysOfWeekAbbr[targetDate.getDay()]} ${d}.${m}.${shortYear}`,
         gregorianDate: formattedDate,
         dayName: daysOfWeek[targetDate.getDay()],
         lunar: {
@@ -287,13 +292,11 @@ function changeYear(offset) {
     const currentVal = parseInt(select.value);
     const newVal = currentVal + offset;
 
-    // เช็คว่าปีใหม่อยู่ในตัวเลือกที่มีหรือไม่ (ป้องกัน Error)
-    // ตรวจสอบว่าใน Dropdown มี option ค่านี้ไหม
     const optionExists = [...select.options].some(o => o.value == newVal);
     
     if (optionExists) {
-        select.value = newVal; // เปลี่ยนค่าใน Dropdown
-        loadCalendar(newVal);  // โหลดข้อมูลใหม่
+        select.value = newVal; 
+        loadCalendar(newVal);  
     } else {
         alert("ไม่มีข้อมูลของปีที่คุณเลือกครับ");
     }

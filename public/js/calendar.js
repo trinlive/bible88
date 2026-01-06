@@ -1,4 +1,5 @@
 // public/js/calendar.js
+// Update: Hebrew Date format to "วันที่ DD.MM.YYYY" (Bold, Dark Red)
 
 // ข้อมูลปีฮีบรู (2025-2036)
 const hebrewYearInfo = {
@@ -27,30 +28,21 @@ function getTodayString() {
 
 // ฟังก์ชันระบุข้อมูลฤดูกาล (สีและคำอธิบาย)
 function getSeasonInfo(monthNumber) {
-    // เดือน 1-3: ใบไม้ผลิ
     if (monthNumber >= 1 && monthNumber <= 3) {
         return { name: "🌱 ฤดูใบไม้ผลิ", desc: "เก็บเกี่ยวข้าวบาร์เลย์", color: "#4caf50" }; 
-    } 
-    // เดือน 4-6: ร้อน
-    else if (monthNumber >= 4 && monthNumber <= 6) {
+    } else if (monthNumber >= 4 && monthNumber <= 6) {
         return { name: "☀️ ฤดูร้อน", desc: "อากาศแห้ง/เก็บผลไม้", color: "#ff9800" }; 
-    } 
-    // เดือน 7-9: ใบไม้ร่วง
-    else if (monthNumber >= 7 && monthNumber <= 9) {
+    } else if (monthNumber >= 7 && monthNumber <= 9) {
         return { name: "🍂 ฤดูใบไม้ร่วง", desc: "ไถหว่าน/ฝนต้นฤดู", color: "#795548" }; 
-    } 
-    // เดือน 10-13: หนาว
-    else {
+    } else {
         return { name: "🌧️ ฤดูหนาว", desc: "ฝนตกหนัก/อากาศเย็น", color: "#2196f3" }; 
     }
 }
 
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
-    // เริ่มต้น Dropdown และโหลดข้อมูล
     initYearSelect();
     
-    // ตั้งค่าระบบค้นหา (Search)
     const searchInput = document.getElementById('eventSearch');
     if(searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -62,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const rows = document.querySelectorAll('#calTable tbody tr');
             
             rows.forEach(row => {
-                // ค้นหาจาก text ทั้งหมดในแถวนั้น
                 if(row.innerText.toLowerCase().includes(term)) { 
                     row.style.display = ''; 
                     visibleCount++; 
@@ -84,7 +75,6 @@ function initYearSelect() {
     if(!select) return;
     
     select.innerHTML = '';
-    // สร้าง Options จากข้อมูล hebrewYearInfo
     for (const [year, info] of Object.entries(hebrewYearInfo)) {
         const option = document.createElement('option');
         option.value = year;
@@ -92,20 +82,11 @@ function initYearSelect() {
         select.appendChild(option);
     }
     
-    // --- SMART LOGIC: เลือกปีเริ่มต้นให้ถูกต้องตามฤดูกาล ---
     const d = new Date();
     let targetYear = d.getFullYear();
-
-    // ถ้าวันนี้เป็นเดือน ม.ค.(0), ก.พ.(1), หรือ มี.ค.(2)
-    // แสดงว่าปีฮีบรูใหม่ยังไม่เริ่ม ให้ถอยกลับไปใช้ปีฮีบรูของปีก่อนหน้า
-    if (d.getMonth() < 3) { 
-        targetYear -= 1;
-    }
+    if (d.getMonth() < 3) { targetYear -= 1; }
     
-    // ตรวจสอบว่าปีนี้มีในฐานข้อมูลหรือไม่ ถ้าไม่มีให้ใช้ 2025
     select.value = hebrewYearInfo[targetYear] ? targetYear.toString() : "2025";
-    
-    // โหลดข้อมูลทันที
     loadCalendar(select.value);
 }
 
@@ -117,27 +98,20 @@ function loadCalendar(year) {
     const stats = document.getElementById('yearStats');
     const noResults = document.getElementById('noResults');
 
-    // Reset Search UI เมื่อเปลี่ยนปี
     const sInput = document.getElementById('eventSearch');
-    if(sInput) { 
-        sInput.value = ''; 
-        sInput.dispatchEvent(new Event('input')); 
-    }
+    if(sInput) { sInput.value = ''; sInput.dispatchEvent(new Event('input')); }
 
-    // อัปเดต Subtitle
     const info = hebrewYearInfo[year] || {year:'--', desc:''};
     if (subtitle) {
         subtitle.innerHTML = `True Lunar | ปีฮีบรู ${info.year} (${info.desc}) | สารบบเอธิโอเปีย 88 เล่ม<br>แจ้งเตือนเวลา เข้า-ออก สะบาโต (18:00 น.)`;
     }
     
-    // UI Loading State
     if(tbody) tbody.innerHTML = ''; 
     if(table) table.style.display = 'none'; 
     if(stats) stats.style.display = 'none'; 
     if(noResults) noResults.style.display = 'none';
     if(loading) loading.style.display = 'block';
 
-    // Fetch API
     fetch(`/api/calendar?year=${year}`)
         .then(res => res.json())
         .then(data => {
@@ -146,7 +120,6 @@ function loadCalendar(year) {
                 return; 
             }
             
-            // คำนวณสถิติ
             const totalDays = data.length;
             if(stats) {
                 stats.innerHTML = `📊 สรุปปีนี้: <strong>${totalDays}</strong> วัน / <strong>${(totalDays/7).toFixed(1)}</strong> สัปดาห์`;
@@ -156,17 +129,13 @@ function loadCalendar(year) {
             const todayStr = getTodayString();
             let todayRow = null;
 
-            // วนลูปสร้างแถวตาราง
             data.forEach(item => {
-                
-                // 1. ตรวจสอบวันขึ้นเดือนใหม่ เพื่อแทรกแถบฤดูกาล (Season Header)
+                // Header ฤดูกาล (colspan=4 เพราะมี 4 คอลัมน์)
                 if(item.lunar.day === 1) {
                     const season = getSeasonInfo(item.lunar.month);
                     const seasonRow = document.createElement('tr');
-                    
-                    // ปรับแต่งแถบสีตามฤดูกาล
                     seasonRow.innerHTML = `
-                        <td colspan="5" style="
+                        <td colspan="4" style="
                             background-color: ${season.color}; 
                             color: white; 
                             padding: 12px 15px; 
@@ -192,12 +161,11 @@ function loadCalendar(year) {
                     tbody.appendChild(seasonRow);
                 }
 
-                // 2. สร้างแถวข้อมูลปกติ
+                // สร้างแถวข้อมูล
                 const tr = document.createElement('tr');
                 const isToday = (item.gregorianDate === todayStr);
                 const fullText = item.lunar.phase || '';
 
-                // ใส่ Class ตามเงื่อนไข
                 if(isToday) { 
                     tr.classList.add('is-today-row'); 
                     tr.id = 'row-today';
@@ -210,7 +178,6 @@ function loadCalendar(year) {
                     tr.classList.add('is-shabbath'); 
                 }
                 
-                // สร้าง Badges (ดวงจันทร์/เทศกาล)
                 let phaseHtml = '';
                 if(fullText) {
                     phaseHtml = fullText.split(' / ').map(p => {
@@ -219,12 +186,10 @@ function loadCalendar(year) {
                         else if(p.includes('Full Moon')) cls = 'bg-full-moon';
                         else if(p.includes('สะบาโต')) cls = 'bg-shabbath';
                         else if(p.includes('✨') || p.includes('ฮานุกะห์') || p.includes('ปัสกา')) cls = 'bg-feast';
-                        
                         return `<span class="badge ${cls}">${p.trim()}</span>`;
                     }).join(' ');
                 }
 
-                // สร้าง List เหตุการณ์ (History)
                 let historyHtml = '';
                 if(item.lunar.history && item.lunar.history.length > 0) {
                     historyHtml = `<ul class="history-list">` +
@@ -232,27 +197,34 @@ function loadCalendar(year) {
                         `</ul>`;
                 }
 
-                // HTML ในแต่ละเซลล์ (5 คอลัมน์)
+                // --- FORMATTING DATE ---
+                // จัดรูปแบบวันที่ฮีบรู: DD.MM.YYYY
+                const hDay = String(item.lunar.day).padStart(2, '0');
+                const hMonth = String(item.lunar.month).padStart(2, '0');
+                const hYear = info.year; // ปีฮีบรูจาก info
+
                 tr.innerHTML = `
                     <td>
                         ${item.date}
                         ${isToday ? '<br><span class="badge" style="background:#ef4444; color:white;">📍 วันนี้</span>' : ''}
                     </td>
-                    <td>${item.dayName}</td>
                     <td>
-                        <span class="lunar-day-highlight">วันที่ ${item.lunar.day}</span>
-                        </td>
+                        <div style="font-weight:bold; color:#2c3e50; font-size:0.95em; margin-bottom:2px;">
+                            ${item.lunar.monthName}
+                        </div>
+                        <div style="font-weight:bold; color:#8b0000; font-size:0.95em;">
+                            วันที่ ${hDay}.${hMonth}.${hYear}
+                        </div>
+                    </td>
                     <td>${phaseHtml}</td>
                     <td>${historyHtml}</td>
                 `;
                 tbody.appendChild(tr);
             });
 
-            // แสดงผล
             if(loading) loading.style.display = 'none'; 
             if(table) table.style.display = 'table';
             
-            // Scroll ไปที่วันนี้ (ถ้ามี)
             if(todayRow) {
                 setTimeout(() => {
                     todayRow.scrollIntoView({behavior:'smooth', block:'center'});
@@ -267,29 +239,19 @@ function loadCalendar(year) {
 
 function clearSearch() {
     const sInput = document.getElementById('eventSearch');
-    if(sInput) { 
-        sInput.value = ''; 
-        sInput.dispatchEvent(new Event('input')); 
-    }
+    if(sInput) { sInput.value = ''; sInput.dispatchEvent(new Event('input')); }
 }
 
-// ============================================
-// ✨ BUTTON LOGIC: อยู่ล่างสุดเพื่อให้ HTML เรียกใช้ได้
-// ============================================
 function changeYear(offset) {
     const select = document.getElementById('yearSelect');
     if (!select) return;
-
-    // แปลงค่าปัจจุบันเป็นตัวเลข แล้วบวก/ลบ offset
     const currentVal = parseInt(select.value);
     const newVal = currentVal + offset;
-
-    // ตรวจสอบว่าปีใหม่มีอยู่ในตัวเลือก (Dropdown) หรือไม่?
     const optionExists = Array.from(select.options).some(option => parseInt(option.value) === newVal);
     
     if (optionExists) {
-        select.value = newVal; // เปลี่ยนค่าใน Dropdown
-        loadCalendar(newVal);  // สั่งโหลดข้อมูลใหม่
+        select.value = newVal;
+        loadCalendar(newVal);
     } else {
         console.log("สุดขอบข้อมูลปีแล้ว: " + newVal);
     }
