@@ -1,0 +1,61 @@
+<script>
+// ตัวอย่างฟังก์ชัน fetch พร้อม Timeout (ฝั่ง Client)
+async function fetchWithTimeout(resource, options = {}) {
+    const { timeout = 60000 } = options; // ตั้งค่า default 60 วินาที
+    
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+  
+    try {
+        const response = await fetch(resource, {
+            ...options,
+            signal: controller.signal  
+        });
+        clearTimeout(id);
+        return response;
+    } catch (error) {
+        clearTimeout(id);
+        if (error.name === 'AbortError') {
+            throw new Error("หมดเวลาเชื่อมต่อ (Request Timed out) - กรุณาลองใหม่");
+        }
+        throw error;
+    }
+}
+
+// วิธีใช้: แทนที่ fetch เดิมด้วย fetchWithTimeout
+// const response = await fetchWithTimeout('/api/get-chapter', {
+//     method: 'POST',
+//     body: JSON.stringify({...}),
+//     timeout: 90000 // รอได้สูงสุด 90 วินาที
+// });
+
+
+
+
+// ...
+const cleanJson = extractJson(text);
+
+if (!cleanJson) {
+    console.error("AI Output Format Error (Raw):", text);
+    throw new Error("Could not parse JSON from AI response.");
+}
+
+getNextKey(); 
+
+// --- เริ่มส่วนแก้ไข: ใช้ jsonrepair ซ่อมก่อน Parse ---
+try {
+    const repairedJson = jsonrepair(cleanJson);
+    return JSON.parse(repairedJson);
+} catch (err) {
+    console.error("JSON Repair Failed:", err);
+    // ถ้าซ่อมไม่ได้จริงๆ ให้ลอง Parse แบบเดิมเผื่อฟลุ๊ค หรือโยน Error ไปเลย
+    return JSON.parse(cleanJson); 
+}
+// --- จบส่วนแก้ไข ---
+
+
+
+
+
+
+</script>

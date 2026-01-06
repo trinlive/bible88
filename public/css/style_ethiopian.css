@@ -1,0 +1,144 @@
+/* public/css/style_ethiopian.css */
+
+/* Import Sarabun Font */
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+body {
+    font-family: 'Sarabun', sans-serif;
+    background-color: #f8fafc;
+    color: #1e293b;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.font-sarabun {
+    font-family: 'Sarabun', sans-serif;
+}
+
+/* Themes */
+.theme-sepia {
+    background-color: #f4ecd8;
+    color: #5b4636;
+}
+.theme-sepia .bg-white { background-color: #fdf6e3; border-color: #e6dbbf; }
+.theme-sepia .text-slate-900 { color: #433422; }
+.theme-sepia .text-slate-600 { color: #5b4636; }
+.theme-sepia nav { background-color: #433422; }
+
+.theme-dark {
+    background-color: #0f172a;
+    color: #cbd5e1;
+}
+.theme-dark .bg-white { background-color: #1e293b; border-color: #334155; }
+.theme-dark .text-slate-900 { color: #f1f5f9; }
+.theme-dark .text-slate-600 { color: #94a3b8; }
+.theme-dark .text-slate-500 { color: #64748b; }
+.theme-dark nav { background-color: #020617; border-bottom: 1px solid #1e293b; }
+.theme-dark aside { background-color: #0f172a; border-right-color: #1e293b; }
+.theme-dark input, .theme-dark select { background-color: #1e293b; color: white; border-color: #334155; }
+.theme-dark .book-card:hover { background-color: #334155; }
+.theme-dark .loading-shimmer {
+    background: #1e293b;
+    background-image: linear-gradient(to right, #1e293b 0%, #334155 20%, #1e293b 40%, #1e293b 100%);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent; 
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1; 
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8; 
+}
+
+.book-card {
+    transition: all 0.2s ease;
+}
+.book-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.chapter-btn {
+    transition: all 0.2s;
+}
+.chapter-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Loading Animation */
+.loading-shimmer {
+    background: #f6f7f8;
+    background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+    background-repeat: no-repeat;
+    background-size: 800px 100%; 
+    animation-duration: 1s;
+    animation-fill-mode: forwards; 
+    animation-iteration-count: infinite;
+    animation-name: placeholderShimmer;
+    animation-timing-function: linear;
+}
+
+@keyframes placeholderShimmer {
+    0% { background-position: -468px 0; }
+    100% { background-position: 468px 0; }
+}
+
+/* Verse Number Styling */
+.verse-num {
+    color: #d97706; /* Amber 600 */
+    font-weight: bold;
+    font-size: 0.85em;
+    margin-right: 0.5em;
+    user-select: none;
+    font-feature-settings: 'tnum';
+    font-variant-numeric: tabular-nums;
+}
+
+/* Timeline Styles */
+.timeline-item {
+    position: relative;
+    padding-left: 24px;
+    border-left: 2px solid #cbd5e1;
+    padding-bottom: 32px;
+}
+.timeline-item:last-child {
+    border-left: 2px solid transparent;
+}
+.timeline-dot {
+    position: absolute;
+    left: -6px;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #d97706;
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px #f1f5f9;
+}
+
+/* Nav Button Style */
+.nav-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    background-color: rgba(30, 41, 59, 0.5);
+    padding: 6px 12px;
+    border-radius: 9999px;
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    transition: all 0.2s;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.nav-back-btn:hover {
+    color: #fbbf24;
+    border-color: #fbbf24;
+    background-color: rgba(30, 41, 59, 1);
+}

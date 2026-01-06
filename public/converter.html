@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แปลงวันที่ | Biblical Calendar</title>
+    
+    <link rel="stylesheet" href="css/style.css?v=12">
+</head>
+<body>
+
+<nav class="top-navbar">
+    <div class="logo-area">🗓️ ปฏิทินพระคัมภีร์</div>
+    
+    <div class="nav-menu">
+        <div id="moonPhaseWidget"></div>
+
+        <a href="calendar.html" class="nav-item">📅 ปฏิทินรายปี</a>
+        <a href="converter.html" class="nav-item active">🔄 แปลงวันที่</a> <a href="index.html" class="nav-item" style="color:#e74c3c;">⬅ ออก</a>
+    </div>
+</nav>
+
+<div class="main-content">
+
+    <div class="converter-wrapper">
+        <h2 style="color:#2c3e50; margin-bottom:10px;">🔄 แปลงวันที่สากล</h2>
+        <p style="color:#7f8c8d; margin-bottom:30px;">เป็นปฏิทินฮีบรู (True Lunar / Enoch)</p>
+
+        <div class="date-input-group">
+            <input type="date" id="gregorianDate" class="date-input">
+        </div>
+
+        <button onclick="convertDate()" class="btn-convert">แปลงวันที่</button>
+
+        <div id="resultCard" class="result-card">
+            <div style="font-size:0.9em; color:#7f8c8d;">ตรงกับวันที่:</div>
+            <div id="hebrewDateResult" class="result-date">-</div>
+            <div id="hebrewMonthResult" style="color:#34495e; font-size:1.1em;">-</div>
+            <div id="dayNameResult" style="margin-top:10px; color:#27ae60; font-weight:bold;">-</div>
+            
+            <div id="eventResult" style="margin-top:15px; padding-top:15px; border-top:1px dashed #ddd; font-size:0.95em; color:#d35400;"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ตั้งค่า Default วันที่ปัจจุบันใน Input
+    document.addEventListener('DOMContentLoaded', () => {
+        const dateInput = document.getElementById('gregorianDate');
+        if(dateInput) {
+            dateInput.value = new Date().toISOString().split('T')[0];
+        }
+    });
+
+    function convertDate() {
+        const input = document.getElementById('gregorianDate').value;
+        if(!input) return;
+
+        const resultCard = document.getElementById('resultCard');
+        const hDate = document.getElementById('hebrewDateResult');
+        const hMonth = document.getElementById('hebrewMonthResult');
+        const dName = document.getElementById('dayNameResult');
+        const evtRes = document.getElementById('eventResult');
+
+        // แสดงสถานะกำลังโหลด
+        resultCard.style.display = 'block';
+        hDate.textContent = 'กำลังคำนวณ...';
+        hMonth.textContent = '';
+        dName.textContent = '';
+        evtRes.textContent = '';
+
+        // เรียก API ไปที่ Backend (ปรับ URL ให้ตรงกับระบบของคุณ)
+        fetch(`/api/convert?date=${input}`)
+            .then(res => res.json())
+            .then(data => {
+                // สมมติ data กลับมาเป็น { day: 1, monthName: "Abib", dayName: "Monday", event: "New Moon" }
+                if(data.error) {
+                    hDate.textContent = "❌ ไม่พบข้อมูล";
+                    return;
+                }
+
+                hDate.textContent = `วันที่ ${data.lunar.day}`;
+                hMonth.textContent = `เดือน ${data.lunar.monthName}`;
+                dName.textContent = data.dayName; // วันในสัปดาห์
+                
+                if(data.lunar.phase || data.lunar.history) {
+                     const phase = data.lunar.phase || "";
+                     const hist = data.lunar.history ? data.lunar.history.join(", ") : "";
+                     evtRes.innerHTML = `<strong>${phase}</strong><br>${hist}`;
+                } else {
+                    evtRes.textContent = "- ไม่มีเหตุการณ์พิเศษ -";
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                hDate.textContent = "⚠️ เกิดข้อผิดพลาด";
+            });
+    }
+</script>
+<script src="js/moonPhase.js?v=4"></script>
+
+</body>
+</html>

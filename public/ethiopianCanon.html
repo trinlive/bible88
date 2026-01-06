@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>พระคัมภีร์เอธิโอเปีย (88 เล่ม) - Ethiopian Canon Reader</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    
+    <link href="css/style_ethiopian.css" rel="stylesheet">
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-sm md:text-base">
+
+    <nav class="bg-slate-900 text-amber-400 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between shadow-lg z-20 shrink-0">
+        <div class="flex items-center gap-4">
+            <a href="/" class="nav-back-btn" title="กลับหน้าเมนูหลัก">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">หน้าหลัก</span>
+            </a>
+
+            <div class="h-6 w-px bg-slate-700 hidden sm:block"></div>
+
+            <div class="flex items-center gap-3 cursor-pointer" onclick="goHome()">
+                <span class="text-2xl">📜</span>
+                <div>
+                    <h1 class="font-bold text-lg md:text-xl tracking-wide font-sarabun">Ethiopian Canon 88</h1>
+                    <p class="text-[10px] md:text-xs text-slate-400 font-sarabun hidden sm:block">สารบบพระคัมภีร์เอธิโอเปีย (ฉบับวิชาการแปลไทย โดยตฤณยาห์ טריןיה)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 md:gap-4 text-slate-300 font-sarabun">
+            <button onclick="goToLessonPlanner()" class="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-amber-500 text-white font-medium text-xs md:text-sm transition-colors shadow-md">
+                <i data-lucide="pen-tool" class="w-4 h-4"></i>
+                <span class="hidden md:inline">สร้างบทเรียน</span>
+            </button>
+
+            <div class="relative">
+                <button onclick="toggleSettings()" class="p-2 hover:bg-white/10 rounded-full transition-colors" title="ตั้งค่าการอ่าน">
+                    <i data-lucide="type" class="w-5 h-5"></i>
+                </button>
+                <div id="settingsPanel" class="hidden absolute right-0 top-12 w-64 bg-white text-slate-800 rounded-xl shadow-xl border border-slate-200 p-4 z-50">
+                    <h4 class="font-bold text-sm mb-3 border-b pb-2">การแสดงผล</h4>
+                    <div class="mb-4">
+                        <span class="text-xs text-slate-500 mb-1 block">ขนาดตัวอักษร</span>
+                        <div class="flex items-center justify-between bg-slate-100 rounded-lg p-1">
+                            <button onclick="changeFontSize(-1)" class="p-2 hover:bg-white rounded w-1/3 flex justify-center"><i data-lucide="minus" class="w-4 h-4"></i></button>
+                            <span id="fontSizeLabel" class="text-xs font-bold">100%</span>
+                            <button onclick="changeFontSize(1)" class="p-2 hover:bg-white rounded w-1/3 flex justify-center"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-500 mb-1 block">ธีมสี</span>
+                        <div class="flex gap-2">
+                            <button onclick="setTheme('light')" class="w-1/3 h-10 rounded border border-slate-300 bg-white hover:ring-2 hover:ring-amber-500"></button>
+                            <button onclick="setTheme('sepia')" class="w-1/3 h-10 rounded border border-amber-200 bg-[#f4ecd8] hover:ring-2 hover:ring-amber-500"></button>
+                            <button onclick="setTheme('dark')" class="w-1/3 h-10 rounded border border-slate-600 bg-[#0f172a] hover:ring-2 hover:ring-amber-500"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="toggleBookmarks()" class="p-2 hover:bg-white/10 rounded-full transition-colors relative" title="ที่คั่นหน้า">
+                <i data-lucide="bookmark" class="w-5 h-5"></i>
+                <span id="bookmarkBadge" class="hidden absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+
+            <button onclick="goToTopicSearch()" class="hidden md:flex items-center gap-2 bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-full border border-slate-700 transition-colors text-amber-400 font-medium text-xs md:text-sm">
+                <i data-lucide="search" class="w-4 h-4"></i>
+                <span>ค้นหาหัวข้อ</span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="flex flex-1 overflow-hidden relative">
+        
+        <aside class="w-full md:w-80 bg-white border-r border-slate-200 flex flex-col shadow-md z-10 absolute md:relative h-full transition-transform transform md:translate-x-0 -translate-x-full" id="sidebar">
+            <div class="flex border-b border-slate-200">
+                <button onclick="switchSidebarTab('books')" id="tabBooks" class="flex-1 py-3 text-center text-sm font-bold border-b-2 border-amber-500 text-amber-600 bg-slate-50">รายชื่อหนังสือ</button>
+                <button onclick="switchSidebarTab('bookmarks')" id="tabBookmarks" class="flex-1 py-3 text-center text-sm font-bold text-slate-500 hover:text-slate-700">ที่คั่นหน้า</button>
+            </div>
+
+            <div id="sidebarBooksView" class="flex flex-col h-full overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50">
+                    <div class="relative">
+                        <i data-lucide="filter" class="absolute left-3 top-2.5 text-slate-400 w-4 h-4"></i>
+                        <input type="text" id="bookSearch" placeholder="กรองรายชื่อหนังสือ..." class="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-sm font-sarabun bg-white text-slate-800">
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto p-2" id="bookListContainer">
+                    </div>
+            </div>
+
+            <div id="sidebarBookmarksView" class="hidden flex-col h-full overflow-hidden bg-slate-50">
+                <div class="p-4 text-center text-slate-500 text-xs italic border-b border-slate-100">
+                    รายการที่คุณบันทึกไว้
+                </div>
+                <div id="bookmarksContainer" class="flex-1 overflow-y-auto p-2 space-y-2">
+                    <div class="text-center p-8 text-slate-400">ยังไม่มีที่คั่นหน้า</div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="fixed inset-0 bg-black/50 z-0 md:hidden hidden" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <main class="flex-1 flex flex-col bg-slate-50 relative w-full h-full overflow-hidden" id="mainContentArea">
+            
+            <div class="md:hidden p-4 bg-white border-b flex justify-between items-center shadow-sm shrink-0">
+                <button onclick="toggleSidebar()" class="text-slate-600 hover:text-slate-900">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <span class="font-bold text-slate-800 font-sarabun" id="mobileHeaderTitle">เลือกหนังสือ</span>
+                <button onclick="goToTopicSearch()" class="text-amber-600">
+                    <i data-lucide="search" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <div id="readerArea" class="flex-1 overflow-y-auto w-full transition-all duration-300">
+                
+                <div id="welcomeScreen" class="flex flex-col items-center min-h-full text-center text-slate-500 space-y-6 p-4 md:p-8">
+                    <div id="verseOfDayCard" class="w-full max-w-2xl bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-1 shadow-lg transform hover:scale-[1.01] transition-transform mb-4 cursor-pointer" onclick="goToVerseOfDay()">
+                        <div class="bg-white/95 rounded-lg p-6 h-full flex flex-col items-center justify-center text-center backdrop-blur-sm">
+                            <span class="text-xs font-bold text-indigo-500 uppercase tracking-widest mb-2 flex items-center gap-1">
+                                <i data-lucide="sun" class="w-3 h-3"></i> พระธรรมประจำวัน
+                            </span>
+                            <p id="vodText" class="text-lg md:text-xl font-sarabun text-slate-800 font-semibold italic mb-3">
+                                "กำลังโหลดข้อพระธรรมหนุนใจ..."
+                            </p>
+                            <p id="vodRef" class="text-sm text-slate-500 font-bold">-</p>
+                        </div>
+                    </div>
+
+                    <div class="max-w-6xl text-sm leading-relaxed space-y-6 text-slate-600 bg-white p-6 md:p-8 rounded-xl border border-slate-100 shadow-sm text-left font-sarabun w-full">
+                        <div class="flex items-center gap-4 border-b border-slate-100 pb-4 mb-4">
+                            <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-2xl">⛪</div>
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900">ห้องสมุดเอธิโอเปีย</h2>
+                                <p class="text-xs text-slate-500">คลังปัญญาโบราณ 88 เล่ม</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid lg:grid-cols-2 gap-8">
+                            <div>
+                                <h3 class="font-bold text-amber-700 mb-4 flex items-center gap-2 text-base border-b border-amber-100 pb-2">
+                                    <i data-lucide="hourglass" class="w-5 h-5"></i> ไทม์ไลน์ประวัติศาสตร์และรากฐาน
+                                </h3>
+                                <div class="ml-2 border-l-2 border-slate-200 pl-6 space-y-5">
+                                    
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot"></div>
+                                        <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">~980 ปีก่อน ค.ศ.</span>
+                                        <h4 class="text-sm font-bold text-slate-800 mt-1">ราชินีแห่งเชบา & กษัตริย์โซโลมอน</h4>
+                                        <p class="text-xs text-slate-600 mt-1">
+                                            ตำนาน <em>Kebra Nagast</em> ระบุว่ากษัตริย์เมเนลิคที่ 1 (โอรส) ได้อัญเชิญ <strong>หีบพันธสัญญา</strong> มาประดิษฐาน ณ อักซึม เป็นจุดเริ่มต้นของรากฐานความเชื่อแบบยูดาย
+                                        </p>
+                                    </div>
+
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot bg-indigo-500"></div>
+                                        <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">ค.ศ. 42 (ยุคพันธสัญญาใหม่)</span>
+                                        <h4 class="text-sm font-bold text-slate-800 mt-1">การรับเชื่อครั้งแรก</h4>
+                                        <p class="text-xs text-slate-600 mt-1">
+                                            ขันทีชาวเอธิโอเปียรับบัพติศมาจากฟิลิป (กิจการ 8) นำข่าวประเสริฐกลับสู่มาตุภูมิ แสดงถึงการเชื่อมต่อกับเยรูซาเล็มตั้งแต่ยุคแรกเริ่ม
+                                        </p>
+                                    </div>
+
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot bg-indigo-500"></div>
+                                        <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">ค.ศ. 330</span>
+                                        <h4 class="text-sm font-bold text-slate-800 mt-1">ศาสนาประจำชาติ</h4>
+                                        <p class="text-xs text-slate-600 mt-1">
+                                            <strong>กษัตริย์เอซานา</strong> ประกาศรับศาสนาคริสต์อย่างเป็นทางการ โดยมี <strong>นักบุญฟรูเมนติอุส</strong> เป็นบิดาแห่งความเชื่อ (Abba Salama)
+                                        </p>
+                                    </div>
+
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot bg-emerald-500"></div>
+                                        <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">ค.ศ. 480</span>
+                                        <h4 class="text-sm font-bold text-slate-800 mt-1">เก้านักบุญ (The Nine Saints)</h4>
+                                        <p class="text-xs text-slate-600 mt-1">
+                                            กลุ่มนักพรตลี้ภัยมาแปลพระคัมภีร์เป็นภาษา <strong>กีเอซ (Ge'ez)</strong> รักษาต้นฉบับที่สูญหายไปจากโลกตะวันตก เช่น เอโนค และ ยูบิลี
+                                        </p>
+                                    </div>
+
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot bg-emerald-500"></div>
+                                        <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">ค.ศ. 540</span>
+                                        <h4 class="text-sm font-bold text-slate-800 mt-1">กำเนิดดนตรีศักดิ์สิทธิ์ (Yared)</h4>
+                                        <p class="text-xs text-slate-600 mt-1">
+                                            <strong>นักบุญยาเรด</strong> ประพันธ์บทเพลงสวด (Zema) และระเบียบพิธีกรรม ซึ่งยังคงใช้ขับร้องในโบสถ์เอธิโอเปียมาจนถึงปัจจุบัน
+                                        </p>
+                                    </div>
+
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot bg-slate-400"></div>
+                                        <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">ศตวรรษที่ 12</span>
+                                        <h4 class="text-sm font-bold text-slate-800 mt-1">เยรูซาเล็มใหม่ (Lalibela)</h4>
+                                        <p class="text-xs text-slate-600 mt-1">
+                                            กษัตริย์ลาลิเบลาสร้างมหาวิหารศิลา 11 แห่งใต้ดิน เพื่อจำลองเยรูซาเล็มใหม่ สะท้อนความเชื่อที่ฝังรากลึก
+                                        </p>
+                                    </div>
+
+                                    <div class="timeline-item border-none pb-0">
+                                        <div class="timeline-dot bg-slate-400"></div>
+                                        <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">ศตวรรษที่ 14 (ยุคทอง)</span>
+                                        <h4 class="text-sm font-bold text-slate-800 mt-1">การฟื้นฟูวรรณกรรม</h4>
+                                        <p class="text-xs text-slate-600 mt-1">
+                                            ยุคแห่งการเขียนและรวบรวมหนังสือสำคัญ เช่น <em>Kebra Nagast</em> และ <em>Fetha Nagast</em>
+                                        </p>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="space-y-6">
+                                 <div class="bg-white p-5 rounded-xl border border-amber-200 shadow-sm">
+                                    <h3 class="font-bold text-amber-800 mb-4 flex items-center gap-2 text-lg">
+                                        <i data-lucide="book-open-check" class="w-6 h-6"></i> หลักการแปลพระนามศักดิ์สิทธิ์
+                                    </h3>
+                                    
+                                    <ul class="text-sm space-y-5 text-slate-700 font-sarabun">
+                                        <li class="flex gap-3 items-start">
+                                            <span class="text-xl leading-none mt-1">🔥</span>
+                                            <div>
+                                                <strong class="text-amber-700 block text-base mb-1">
+                                                    <span class="font-sans">𐤉𐤄𐤅𐤄</span> พระบิดายาห์ฮฺวาห์ (YHWH)
+                                                </strong>
+                                                <p class="leading-relaxed text-slate-600 text-xs">
+                                                    เราเลือกใช้การทับศัพท์พระนามเฉพาะของพระเจ้า แทนคำกลางๆ ว่า "พระเจ้า" หรือ "องค์พระผู้เป็นเจ้า" (The LORD) และคงรูปอักษรฮีบรูโบราณ (Paleo-Hebrew) ไว้ เพื่อเน้นย้ำถึงความเป็นบุคคลและความศักดิ์สิทธิ์สูงสุดตามต้นฉบับเดิม
+                                                </p>
+                                            </div>
+                                        </li>
+
+                                        <li class="flex gap-3 items-start">
+                                            <span class="text-xl leading-none mt-1">✝️</span>
+                                            <div>
+                                                <strong class="text-amber-700 block text-base mb-1">
+                                                    <span class="font-sans">𐤉𐤄𐤅𐤔𐤏</span> พระบุตรยาห์ชัวห์ (Yeshua)
+                                                </strong>
+                                                <p class="leading-relaxed text-slate-600 text-xs">
+                                                    ใช้พระนามภาษาฮีบรู "ยาห์-ชัวห์" (Yah-Shua) ซึ่งแปลตรงตัวว่า "พระยาห์ชัวห์ทรงช่วยให้รอด" การแปลเช่นนี้ช่วยเชื่อมโยงความสัมพันธ์ระหว่างพระบิดาและพระบุตรให้ชัดเจนยิ่งกว่าคำว่า "เยซู" (Jesus) ที่ผ่านการแปลหลายต่อ
+                                                </p>
+                                            </div>
+                                        </li>
+
+                                        <li class="flex gap-3 items-start">
+                                            <span class="text-xl leading-none mt-1">👑</span>
+                                            <div>
+                                                <strong class="text-amber-700 block text-base mb-1">
+                                                    พระเมสสิยาห์ (The Messiah)
+                                                </strong>
+                                                <p class="leading-relaxed text-slate-600 text-xs">
+                                                    เราใช้คำว่า "เมสสิยาห์" (ผู้ถูกเจิม - ภาษาฮีบรู) แทนคำว่า "พระคริสต์" (ภาษากรีก) เพื่อให้ผู้อ่านเห็นภาพความต่อเนื่องของคำพยากรณ์จากพันธสัญญาเดิมสู่การสำเร็จในพันธสัญญาใหม่ตามบริบทของเอธิโอเปีย
+                                                </p>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="bg-slate-50 p-4 rounded-lg border border-indigo-100">
+                                    <h3 class="font-bold text-indigo-700 mb-3 flex items-center gap-2 text-base">
+                                        <i data-lucide="library" class="w-5 h-5"></i> โครงสร้างสารบบ (81-88 เล่ม)
+                                    </h3>
+                                    <div class="text-xs space-y-3 text-slate-700">
+                                        <div>
+                                            <strong class="text-indigo-900 block mb-1">พันธสัญญาเดิม (46 หรือ 53 เล่ม):</strong>
+                                            <p class="leading-relaxed mb-1">นอกจาก 39 เล่มมาตรฐาน ยังรวมหนังสือสำคัญ:</p>
+                                            <ul class="list-disc ml-4 text-slate-600 space-y-0.5">
+                                                <li><em>Enoch (เอโนค)</em>: คำพยากรณ์เรื่องบุตรมนุษย์และการพิพากษา</li>
+                                                <li><em>Jubilees (ยูบิลี)</em>: รายละเอียดการสร้างโลกและประวัติศาสตร์ปิตาจารย์</li>
+                                                <li><em>Meqabyan 1-3</em>: หนังสือมัคคาบีฉบับเอธิโอเปีย</li>
+                                                <li><em>Tobit, Judith, Wisdom, Sirach, Baruch</em></li>
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <strong class="text-indigo-900 block mb-1">พันธสัญญาใหม่ (35 เล่ม):</strong>
+                                            <p class="leading-relaxed mb-1">นอกจาก 27 เล่มมาตรฐาน เพิ่ม "หนังสือระเบียบวินัย" 8 เล่ม:</p>
+                                            <ul class="list-disc ml-4 text-slate-600 space-y-0.5">
+                                                <li><em>Sirate Tsion</em> (ระเบียบแห่งศิโยน)</li>
+                                                <li><em>Tizaz</em> (พระบัญชา), <em>Gitsiw</em>, <em>Abtilis</em></li>
+                                                <li><em>Metsihafe Kidan I & II</em> (พันธสัญญา)</li>
+                                                <li><em>Epistles of Clement</em> & <em>Didascalia</em></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white p-4 rounded-lg border border-emerald-200 shadow-sm">
+                                    <h3 class="font-bold text-emerald-700 mb-3 flex items-center gap-2 text-base">
+                                        <i data-lucide="pickaxe" class="w-5 h-5"></i> ไฮไลท์ทางโบราณคดี
+                                    </h3>
+                                    <ul class="text-xs space-y-3 text-slate-700">
+                                        <li class="flex gap-2 items-start">
+                                            <span class="text-lg leading-none">📜</span>
+                                            <div>
+                                                <strong class="text-emerald-900 block">Garima Gospels (ค.ศ. 330-650)</strong>
+                                                พระกิตติคุณประดับภาพสีที่ <em>เก่าแก่ที่สุดในโลก</em> ที่ยังสมบูรณ์ ค้นพบที่อาราม Abba Garima ยืนยันอายุด้วย Carbon-14
+                                            </div>
+                                        </li>
+                                        <li class="flex gap-2 items-start">
+                                            <span class="text-lg leading-none">🏺</span>
+                                            <div>
+                                                <strong class="text-emerald-900 block">Dead Sea Scrolls Connection</strong>
+                                                การค้นพบชิ้นส่วน <em>1 Enoch</em> และ <em>Jubilees</em> ที่ถ้ำคุมราน ยืนยันว่าหนังสือเหล่านี้เป็นรากฐานสำคัญของชาวยิวโบราณ ตรงกับที่เอธิโอเปียรักษาไว้
+                                            </div>
+                                        </li>
+                                        <li class="flex gap-2 items-start">
+                                            <span class="text-lg leading-none">🗝️</span>
+                                            <div>
+                                                <strong class="text-emerald-900 block">Ark of the Covenant</strong>
+                                                เชื่อว่าหีบพันธสัญญาถูกเก็บรักษาอย่างเข้มงวดภายใน <em>Chapel of the Tablet</em> ณ เมืองอักซึม โดยมี "พระภิกษุผู้พิทักษ์" เพียงรูปเดียวที่ได้รับอนุญาตให้เฝ้าดูแลและเห็นหีบนั้นตลอดชีวิต
+                                            </div>
+                                        </li>
+                                        <li class="flex gap-2 items-start">
+                                            <span class="text-lg leading-none">🏛️</span>
+                                            <div>
+                                                <strong class="text-emerald-900 block">Yeha Temple (700 ปีก่อน ค.ศ.)</strong>
+                                                วิหารที่เก่าแก่ที่สุดในเอธิโอเปีย สร้างด้วยหินตัดเรียบกริบโดยไม่ใช้ปูน แสดงถึงอารยธรรมชั้นสูงและความสัมพันธ์กับอาณาจักรซาบา (Sabaean)
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="canon-info mt-8 pt-8 border-t border-slate-200">
+                            <h4 class="text-amber-600 font-bold mb-4 text-center text-base border-b-2 border-amber-200 pb-1 inline-block px-6">
+                                📜 ประวัติศาสตร์การจารึกพระคัมภีร์เอธิโอเปีย
+                            </h4>
+                            
+                            <div class="grid md:grid-cols-3 gap-6 text-left mt-2">
+                                <div class="bg-amber-50/50 p-4 rounded-lg border border-amber-100">
+                                    <h5 class="font-bold text-amber-800 mb-2 text-sm flex items-center gap-2">
+                                        <i data-lucide="feather" class="w-4 h-4"></i> ยุคทองแห่งการแปล
+                                    </h5>
+                                    <p class="text-xs text-slate-600 leading-relaxed">
+                                        เริ่มต้นในศตวรรษที่ 5 โดยกลุ่ม <strong>"เก้านักบุญ" (The Nine Saints)</strong> ที่ลี้ภัยทางศาสนามาจากซีเรียและกรีก ได้แปลพระคัมภีร์จากภาษาฮีบรู/กรีก/อราเมอิก เป็นภาษา <strong>กีเอซ (Ge'ez)</strong> ทำให้พระธรรมเข้าถึงจิตวิญญาณของชาวพื้นเมือง
+                                    </p>
+                                </div>
+
+                                <div class="bg-indigo-50/50 p-4 rounded-lg border border-indigo-100">
+                                    <h5 class="font-bold text-indigo-800 mb-2 text-sm flex items-center gap-2">
+                                        <i data-lucide="shield" class="w-4 h-4"></i> ผู้รักษาต้นฉบับ
+                                    </h5>
+                                    <p class="text-xs text-slate-600 leading-relaxed">
+                                        ในขณะที่โลกตะวันตกตัดหนังสือบางเล่มออก เอธิโอเปียกลับมองเห็นคุณค่าและรักษาหนังสืออย่าง <em>Enoch</em> และ <em>Jubilees</em> ไว้ในฐานะพระวจนะศักดิ์สิทธิ์ ทำให้ปัจจุบันเป็นแหล่งอ้างอิงเดียวในโลกที่มีเนื้อหาครบถ้วนสมบูรณ์
+                                    </p>
+                                </div>
+
+                                <div class="bg-emerald-50/50 p-4 rounded-lg border border-emerald-100">
+                                    <h5 class="font-bold text-emerald-800 mb-2 text-sm flex items-center gap-2">
+                                        <i data-lucide="scroll" class="w-4 h-4"></i> ศิลปะการจารึก
+                                    </h5>
+                                    <p class="text-xs text-slate-600 leading-relaxed">
+                                        พระคัมภีร์ทุกเล่มถูกจารึกด้วยมือบน <strong>หนังแพะ (Vellum)</strong> และตกแต่งด้วยภาพวาดสีธรรมชาติที่สดใส (Illuminated Manuscripts) โดยพระภิกษุในอารามบนยอดเขา ทำให้คัมภีร์มีอายุยืนยาวนับพันปี
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <p class="mt-6 text-center italic text-slate-400 text-[10px]">
+                                "สารบบ 81-88 เล่ม ไม่ใช่เพียงตัวเลข แต่คือมรดกแห่งความเชื่อที่ส่งต่อผ่านกาลเวลากว่า 1,600 ปี"
+                            </p>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-3 justify-center mt-6 pt-4 border-t border-slate-100 w-full">
+                            <button onclick="goToTopicSearch()" class="bg-indigo-600 text-white px-6 py-3 rounded-full shadow-lg hover:bg-indigo-700 transition-colors font-bold flex items-center gap-2 justify-center">
+                                <i data-lucide="search" class="w-5 h-5"></i> ค้นหาตามหัวข้อ
+                            </button>
+                            <button onclick="toggleSidebar()" class="md:hidden bg-slate-800 text-white px-6 py-3 rounded-full shadow-lg hover:bg-slate-700 transition-colors font-bold flex items-center gap-2 justify-center">
+                                <i data-lucide="book-open" class="w-5 h-5"></i> เลือกหนังสืออ่าน
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="chapterSelectionView" class="hidden max-w-5xl mx-auto p-4 md:p-10">
+                    <div class="mb-8">
+                        <div class="text-amber-600 text-sm font-semibold mb-2 uppercase tracking-wider font-sarabun" id="gridBookCategory">หมวด</div>
+                        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 font-sarabun mb-2" id="gridBookTitle">ชื่อหนังสือ</h1>
+                        <p class="text-slate-500 font-sarabun">กรุณาเลือกบทที่ต้องการอ่าน:</p>
+                    </div>
+                    <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3" id="chapterGrid"></div>
+                </div>
+
+                <div id="readingView" class="hidden max-w-7xl mx-auto p-4 md:p-8">
+                    <div class="mb-8 border-b pb-4 border-slate-200">
+                        <div class="flex flex-wrap items-center justify-between gap-4">
+                            <div>
+                                <div class="flex gap-2 mb-1">
+                                    <button onclick="backToChapters()" class="text-xs text-slate-500 hover:text-amber-600 flex items-center gap-1 transition-colors font-sarabun">
+                                        <i data-lucide="grid" class="w-3 h-3"></i> สารบัญบท
+                                    </button>
+                                    
+                                    <button id="historyBackBtn" onclick="goBackHistory()" class="hidden text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors font-sarabun font-bold bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
+                                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> ย้อนกลับไปอ่านจุดเดิม
+                                    </button>
+                                </div>
+
+                                <h1 class="text-2xl md:text-3xl font-bold text-slate-900 font-sarabun flex items-center gap-2" id="bookTitleDisplay">
+                                    ชื่อหนังสือ
+                                </h1>
+                                <div class="text-xs text-amber-600 font-bold uppercase tracking-wider mt-1 font-sarabun" id="bookCategoryLabel">หมวด</div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button onclick="saveBookmark()" id="saveBookmarkBtn" class="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-amber-500 transition-colors" title="บันทึกที่คั่นหน้า">
+                                    <i data-lucide="bookmark" class="w-6 h-6"></i>
+                                </button>
+                                <div class="flex items-center gap-2 bg-white p-1.5 rounded-lg border border-slate-200 shadow-sm">
+                                    <button onclick="changeChapter(-1)" class="p-1.5 hover:bg-slate-100 rounded-md disabled:opacity-30" id="prevChapBtn"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                                    <span class="font-bold min-w-[60px] text-center text-slate-700 text-sm">บทที่ <span id="currentChapterNum">1</span></span>
+                                    <button onclick="changeChapter(1)" class="p-1.5 hover:bg-slate-100 rounded-md" id="nextChapBtn"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col lg:flex-row gap-8 items-start">
+                        <div class="w-full lg:w-2/3 bg-white p-6 md:p-10 rounded-xl shadow-sm border border-slate-100 text-area-container">
+                            <div id="textContent" class="prose prose-lg prose-slate max-w-none font-sarabun leading-loose text-slate-700"></div>
+                        </div>
+                        <div class="w-full lg:w-1/3 lg:sticky lg:top-4">
+                            <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-6 shadow-sm">
+                                <div class="flex items-center gap-2 mb-4 text-indigo-800 font-bold border-b border-indigo-200 pb-2 font-sarabun">
+                                    <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                                    <span>บทวิเคราะห์เชิงวิชาการ</span>
+                                </div>
+                                <div id="summaryContent" class="text-sm text-slate-600 space-y-4 leading-relaxed font-sarabun"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="topicSearchView" class="hidden max-w-4xl mx-auto p-4 md:p-10 min-h-full">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-slate-800 font-sarabun mb-2">ค้นหาพระธรรมตามหัวข้อ</h2>
+                        <p class="text-slate-500 font-sarabun">ระบบจะค้นหาข้อพระคัมภีร์ที่เกี่ยวข้องจากสารบบ 88 เล่ม</p>
+                    </div>
+                    <div class="max-w-2xl mx-auto mb-8 relative">
+                        <input type="text" id="topicInput" placeholder="เช่น พระวิญญาณบริสุทธิ์, ความรอด, ความรัก, คู่ครอง, การงาน..." class="w-full pl-6 pr-14 py-4 rounded-full border-2 border-slate-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 text-lg shadow-sm font-sarabun transition-all outline-none" onkeypress="if(event.key === 'Enter') performTopicSearch()">
+                        <button onclick="performTopicSearch()" class="absolute right-2 top-2 bottom-2 bg-amber-500 hover:bg-amber-600 text-white p-3 rounded-full transition-colors shadow-md">
+                            <i data-lucide="search" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div id="searchResults" class="space-y-4">
+                        <div class="text-center text-slate-400 py-10 font-sarabun italic hidden" id="searchPlaceholder">พิมพ์หัวข้อที่ต้องการค้นหา แล้วกดปุ่มแว่นขยาย</div>
+                    </div>
+                </div>
+
+                <div id="lessonPlannerView" class="hidden max-w-6xl mx-auto p-4 md:p-8 min-h-full">
+                    <div class="text-center mb-6">
+                        <h2 class="text-3xl font-bold text-slate-800 font-sarabun mb-1">ห้องเตรียมสอน (Lesson Studio)</h2>
+                        <p class="text-slate-500 font-sarabun text-sm">สร้างแผนการสอนและคอนเทนต์ออนไลน์จากพระคัมภีร์เอธิโอเปีย</p>
+                    </div>
+
+                    <div class="grid lg:grid-cols-3 gap-6">
+                        <div class="space-y-6">
+                            <div class="bg-white p-5 rounded-xl shadow-sm border border-amber-100">
+                                <h3 class="font-bold text-amber-800 mb-3 flex items-center gap-2">
+                                    <i data-lucide="pen-tool" class="w-4 h-4"></i> สร้างบทเรียนใหม่
+                                </h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">หัวข้อที่ต้องการสอน</label>
+                                        <input type="text" id="lessonTopic" placeholder="เช่น ชีวิตคู่, การเลี้ยงลูก, ความหวัง..." class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500 text-sm outline-none font-sarabun">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 mb-1">แพลตฟอร์ม</label>
+                                            <select id="lessonPlatform" class="w-full p-3 rounded-lg border border-slate-200 text-sm outline-none font-sarabun bg-white">
+                                                <option value="General">ทั่วไป (General)</option>
+                                                <option value="TikTok">TikTok/Reels</option>
+                                                <option value="Facebook">Facebook</option>
+                                                <option value="Youtube">Youtube</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 mb-1">ระยะเวลา</label>
+                                            <select id="lessonDuration" class="w-full p-3 rounded-lg border border-slate-200 text-sm outline-none font-sarabun bg-white">
+                                                <option value="3-5 minutes">3-5 นาที</option>
+                                                <option value="15 minutes">15 นาที</option>
+                                                <option value="30 minutes">30 นาที</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button onclick="generateLesson()" id="genLessonBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-lg font-bold shadow-md transition-all flex justify-center gap-2">
+                                        <i data-lucide="sparkles" class="w-5 h-5"></i> ให้ AI ร่างบทเรียน
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 h-[400px] flex flex-col">
+                                <h3 class="font-bold text-slate-700 mb-3 flex items-center gap-2 border-b pb-2">
+                                    <i data-lucide="archive" class="w-4 h-4"></i> บทเรียนที่บันทึกไว้
+                                </h3>
+                                <div id="savedLessonsList" class="flex-1 overflow-y-auto space-y-2 pr-1">
+                                    <div class="text-center text-slate-400 text-xs mt-10">ยังไม่มีบทเรียนที่บันทึก</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-2">
+                            <div class="bg-white rounded-xl shadow-lg border border-slate-200 h-full min-h-[500px] flex flex-col relative overflow-hidden">
+                                <div class="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                                    <span class="font-bold text-slate-700 text-sm" id="lessonPreviewTitle">ตัวอย่างบทเรียน</span>
+                                    <div class="flex gap-2">
+                                        <button onclick="copyLesson()" class="p-2 hover:bg-white rounded text-slate-500 hover:text-indigo-600" title="คัดลอก"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                                        <button onclick="saveCurrentLesson()" id="saveLessonBtn" class="p-2 hover:bg-white rounded text-slate-500 hover:text-emerald-600" title="บันทึก" disabled><i data-lucide="save" class="w-4 h-4"></i></button>
+                                        <button onclick="clearLessonView()" class="p-2 hover:bg-white rounded text-slate-500 hover:text-red-600" title="ล้าง"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    </div>
+                                </div>
+                                
+                                <div id="lessonContentArea" class="p-6 md:p-8 overflow-y-auto flex-1 prose prose-slate max-w-none font-sarabun">
+                                    <div class="flex flex-col items-center justify-center h-full text-slate-300">
+                                        <i data-lucide="layout-template" class="w-16 h-16 mb-4 opacity-50"></i>
+                                        <p>เลือกหัวข้อแล้วกดสร้างเพื่อเริ่มใช้งาน</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
+        <span id="toastIcon"></span>
+        <span id="toastMsg" class="font-sarabun text-sm"></span>
+    </div>
+
+    <script src="js/ethiopian.js"></script>
+</body>
+</html>

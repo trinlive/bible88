@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ปฏิทินรายปี | Biblical Calendar</title>
+    <link rel="stylesheet" href="css/style.css?v=11">
+</head>
+<body>
+
+<nav class="top-navbar">
+    <div class="logo-area">🗓️ ปฏิทินพระคัมภีร์</div>
+    
+    <div class="nav-menu">
+        <div id="moonPhaseWidget"></div>
+
+        <a href="calendar.html" class="nav-item active">📅 ปฏิทินรายปี</a>
+        <a href="converter.html" class="nav-item">🔄 แปลงวันที่</a>
+        <a href="index.html" class="nav-item" style="color:#e74c3c;">⬅ ออก</a>
+    </div>
+</nav>
+
+<div class="main-content">
+    <div class="year-selector-container" style="display:flex; justify-content:center; align-items:center; gap:15px; margin-bottom: 25px;">
+        <button onclick="changeYear(-1)" style="
+            width: 40px; height: 40px; border-radius: 50%; border: 2px solid #3498db; background: white; color: #3498db; 
+            font-weight: bold; font-size: 1.2em; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">❮</button>
+            
+        <select id="yearSelect" onchange="loadCalendar(this.value)" style="margin: 0;"></select>
+        
+        <button onclick="changeYear(1)" style="
+            width: 40px; height: 40px; border-radius: 50%; border: 2px solid #3498db; background: white; color: #3498db; 
+            font-weight: bold; font-size: 1.2em; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">❯</button>
+    </div>
+
+    <div class="search-container">
+        <div class="search-icon">🔍</div>
+        <input type="text" id="eventSearch" class="search-input" placeholder="ค้นหาเหตุการณ์, เทศกาล (เช่น 'ปัสกา')...">
+        <div class="search-clear" id="searchClear" onclick="clearSearch()">✕</div>
+    </div>
+
+    <div class="subtitle">
+        <div id="calendarSubtitleText">True Lunar | สารบบเอธิโอเปีย 88 เล่ม</div>
+        <div id="yearStats" class="stats-badge" style="display:none;"></div>
+    </div>
+
+    <div class="jubilees-quote-container">
+        <div class="jubilees-title">📜 ความลับแห่งเวลาและฤดูกาล</div>
+        <p class="jubilees-text">
+            "พระเจ้าทรงกำหนดปีให้สมบูรณ์ที่ <strong>364 วัน (52 สัปดาห์)</strong> เพื่อรักษาระเบียบแห่งความบริสุทธิ์ 
+            แต่เพราะมนุษย์ละเลยพระวจนะและละเมิดวันสะบาโต <strong>ดวงจันทร์จึงรบกวนฤดูกาล</strong> (เข้ามาเร็วปีละ 10 วัน) 
+            ทำให้วันศักดิ์สิทธิ์คลาดเคลื่อนและถูกลืมเลือนไป"
+        </p>
+        <div class="jubilees-ref">— หนังสือโยเบล 6:32-38</div>
+    </div>
+
+    <div class="infographic-box">
+        <div style="text-align:center; font-weight:bold; color:#2c3e50; margin-bottom:20px;">
+            ⏳ วงจรเวลา: หายไป...แล้วเติมคืน
+        </div>
+        
+        <div class="bar-container">
+            <div class="bar-label">🌞 ปีโยเบล</div>
+            <div class="track">
+                <div class="bar-fill solar-fill" style="width: 90%;">364 วัน (มาตรฐาน)</div>
+                <div class="target-line" style="left: 90%;"></div>
+            </div>
+        </div>
+        <div class="bar-container">
+            <div class="bar-label">🌙 ปีปกติ (12)</div>
+            <div class="track">
+                <div class="bar-fill lunar-fill" style="width: 87%;">354 วัน (สั้นไป)</div>
+                <div class="gap-marker" style="left: 87%; width: 3%;"></div>
+                <div class="gap-text-label">-10 วัน</div>
+            </div>
+        </div>
+        <div class="bar-container">
+            <div class="bar-label">🌕 ปีอธิกฯ (13)</div>
+            <div class="track">
+                <div class="bar-fill leap-fill" style="width: 98%;">384+ วัน (เติมคืน)</div>
+                <div class="compensate-marker" style="left: 90%; width: 8%;"></div>
+            </div>
+        </div>
+        
+        <div style="text-align:center; font-size:0.85em; color:#666; margin-top:15px; background:#f9f9f9; padding:10px; border-radius:8px;">
+            ทุกๆ 2-3 ปี จะมีการ <strong>"เติมเดือนที่ 13"</strong> เข้าไปในปฏิทิน<br>
+            เพื่อดึงเวลาที่หายไปสะสม (30 วัน) ให้กลับมาตรงกับฤดูกาลอีกครั้ง
+        </div>
+    </div>
+
+    <div id="loading" style="text-align:center; padding:40px; color:#666;">⏳ กำลังโหลดข้อมูล...</div>
+    <div id="noResults" style="text-align:center; padding:20px; display:none; color:#777;">❌ ไม่พบข้อมูล</div>
+
+    <table id="calTable" style="display: none;">
+        <thead>
+            <tr>
+                <th width="15%">วันที่สากล</th>
+                <th width="10%">วัน</th>
+                <th width="20%">เดือนฮีบรู</th>
+                <th width="20%">ดวงจันทร์ / เทศกาล</th>
+                <th width="35%">📖 เหตุการณ์</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script src="js/calendar.js?v=9"></script>
+<script src="js/moonPhase.js?v=4"></script>
+
+</body>
+</html>

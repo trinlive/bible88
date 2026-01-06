@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การเสี่ยงฉลากพระธรรม</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Sarabun:ital,wght@0,400;0,700;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@700&display=swap');
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            background-image: 
+                radial-gradient(circle at 50% 0%, #312e81 0%, transparent 60%),
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e293b' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            padding: 20px 0;
+            color: #e2e8f0;
+        }
+
+        /* --- Back Button Style (New) --- */
+        .back-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #94a3b8;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            z-index: 50;
+            background-color: rgba(30, 41, 59, 0.8);
+            padding: 8px 16px;
+            border-radius: 9999px;
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+        .back-home:hover {
+            color: #fbbf24; /* Amber-400 */
+            border-color: #fbbf24;
+            background-color: rgba(30, 41, 59, 1);
+            transform: translateX(-2px);
+        }
+
+        /* --- Priest Character & Animations --- */
+        .priest-wrapper { position: relative; width: 260px; height: 320px; margin: 0 auto 10px; }
+        .aura { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); width: 220px; height: 220px; background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, transparent 70%); border-radius: 50%; z-index: 0; animation: pulseAura 4s infinite alternate; }
+        
+        #cartoonPriestSvg { width: 100%; height: 100%; overflow: visible; }
+        #priestBody { animation: bobbing 3s ease-in-out infinite; transform-origin: bottom center; }
+        .eye-blink { animation: blink 4s infinite; transform-origin: center; }
+        
+        /* Casting State Animations */
+        .casting #leftArm { animation: cartoonRaiseLeft 0.8s ease-in-out infinite alternate; transform-origin: 75px 160px; }
+        .casting #rightArm { animation: cartoonRaiseRight 0.8s ease-in-out infinite alternate; transform-origin: 185px 160px; }
+        .casting #breastplate { animation: glowCartoon 0.5s ease-in-out infinite alternate; }
+
+        @keyframes pulseAura { from { opacity: 0.3; transform: translate(-50%, -50%) scale(0.9); } to { opacity: 0.6; transform: translate(-50%, -50%) scale(1.1); } }
+        @keyframes bobbing { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        @keyframes blink { 0%, 48%, 52%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.1); } }
+        @keyframes cartoonRaiseLeft { 0% { transform: rotate(0deg); } 100% { transform: rotate(-45deg); } }
+        @keyframes cartoonRaiseRight { 0% { transform: rotate(0deg); } 100% { transform: rotate(45deg); } }
+        @keyframes glowCartoon { from { filter: drop-shadow(0 0 2px gold); } to { filter: drop-shadow(0 0 15px gold); } }
+
+        /* --- Stones & UI --- */
+        #diceContainer { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; perspective: 800px; max-width: 600px; min-height: 60px; }
+        .lot-stone { width: 50px; height: 60px; border-radius: 40% 40% 50% 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: rgba(255,255,255,0.9); text-shadow: 0 2px 4px rgba(0,0,0,0.6); position: relative; transform: scale(0) translateY(-50px); transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: inset 0 -4px 6px rgba(0,0,0,0.3), 0 5px 15px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.3); font-family: 'Sarabun', serif; opacity: 0; }
+        .lot-stone.revealed { transform: scale(1) translateY(0) rotate(var(--rotation)); opacity: 1; }
+        
+        /* Stone Colors */
+        .stone-sardius { background: radial-gradient(circle at 30% 30%, #ef4444, #991b1b); }
+        .stone-topaz { background: radial-gradient(circle at 30% 30%, #facc15, #854d0e); }
+        .stone-carbuncle { background: radial-gradient(circle at 30% 30%, #16a34a, #064e3b); }
+        .stone-emerald { background: radial-gradient(circle at 30% 30%, #2dd4bf, #115e59); }
+        .stone-sapphire { background: radial-gradient(circle at 30% 30%, #2563eb, #1e3a8a); }
+        .stone-diamond { background: radial-gradient(circle at 30% 30%, #e2e8f0, #94a3b8); color: #1e293b; }
+        .stone-ligure { background: radial-gradient(circle at 30% 30%, #f97316, #9a3412); }
+        .stone-agate { background: radial-gradient(circle at 30% 30%, #78716c, #44403c); }
+        .stone-amethyst { background: radial-gradient(circle at 30% 30%, #a855f7, #581c87); }
+        .stone-beryl { background: radial-gradient(circle at 30% 30%, #84cc16, #3f6212); }
+        .stone-onyx { background: radial-gradient(circle at 30% 30%, #1f2937, #000000); }
+        .stone-jasper { background: radial-gradient(circle at 30% 30%, #b91c1c, #450a0a); }
+
+        .btn-press { transition: all 0.1s; }
+        .btn-press:active { transform: scale(0.95); }
+        .dice-option { cursor: pointer; transition: all 0.2s; border-width: 1px; }
+        .dice-option.active { background-color: #d97706; color: white; border-color: #b45309; box-shadow: 0 0 10px rgba(217, 119, 6, 0.5); }
+        
+        .scripture-box { font-family: 'Sarabun', sans-serif; background-color: #1e293b; border-left: 4px solid #d97706; padding: 16px; margin-bottom: 12px; border-radius: 0 8px 8px 0; animation: fadeIn 0.5s ease-out forwards; opacity: 0; transform: translateY(10px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+        .loading-dots:after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
+        @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } 80%, 100% { content: ''; } }
+        
+        .biblical-caption { background-color: rgba(30, 41, 59, 0.8); border: 1px solid rgba(217, 119, 6, 0.3); border-left: 4px solid #d97706; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; max-width: 600px; margin-left: auto; margin-right: auto; }
+        
+        .prayer-input-container { position: relative; max-width: 400px; margin: 0 auto 20px; }
+        .prayer-input { width: 100%; background: rgba(30, 41, 59, 0.6); border: 1px solid #475569; color: #e2e8f0; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; transition: all 0.3s; text-align: center; }
+        .prayer-input:focus { outline: none; border-color: #d97706; background: rgba(30, 41, 59, 0.9); box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2); }
+        .prayer-input::placeholder { color: #64748b; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <!-- ปุ่มกลับหน้าหลัก -->
+    <a href="/" class="back-home">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        กลับหน้าเมนูหลัก
+    </a>
+
+    <div class="container mx-auto px-4 max-w-lg pb-10" id="mainApp">
+        <!-- Header -->
+        <div class="text-center mb-6 mt-12">
+            <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-500">
+                การเสี่ยงฉลากพระธรรม
+            </h1>
+            <p class="text-gray-400 text-sm mt-1">มหาปุโรหิตผู้ทำหน้าที่เสี่ยงทาย (อัญมณี 12 เผ่า)</p>
+        </div>
+
+        <!-- Biblical Disclaimer -->
+        <div class="biblical-caption text-center">
+            <h3 class="text-amber-400 font-semibold mb-2 flex items-center justify-center gap-2">
+                <span>📖</span> หลักการพระคัมภีร์: การทอดสลากมิใช่ไสยศาสตร์
+            </h3>
+            <p class="text-slate-300 text-sm font-light italic mb-2">
+                "ฉลากนั้นทอดลงที่ตัก แต่การตัดสินมาจากพระยาห์เวห์ทั้งสิ้น"
+                <br><span class="text-amber-500/80 not-italic text-xs">- สุภาษิต 16:33 -</span>
+            </p>
+            <p class="text-slate-400 text-xs leading-relaxed">
+                การทอดสลากในบริบทนี้เป็นการระลึกถึงธรรมเนียมในพระคัมภีร์ เพื่อทูลขอการทรงนำ <span class="text-amber-200">ไม่ใช่การทำนายทายทักหรือโหราศาสตร์</span>
+            </p>
+        </div>
+
+        <!-- High Priest Graphic -->
+        <div class="priest-wrapper" id="priestContainer">
+            <div class="aura"></div>
+            <svg id="cartoonPriestSvg" viewBox="0 0 260 320" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="skinGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#f5d0b0;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#eac096;stop-opacity:1" />
+                    </linearGradient>
+                    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#fcd34d;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#b45309;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <g id="priestBody">
+                    <path d="M60 140 L200 140 L210 300 Q130 315 50 300 Z" fill="#1e3a8a" stroke="#172554" stroke-width="2"/>
+                    <g transform="translate(0, 300)">
+                        <circle cx="60" cy="-5" r="4" fill="gold"/><circle cx="80" cy="0" r="4" fill="#ef4444"/><circle cx="100" cy="3" r="4" fill="gold"/><circle cx="120" cy="4" r="4" fill="#ef4444"/><circle cx="140" cy="4" r="4" fill="gold"/><circle cx="160" cy="3" r="4" fill="#ef4444"/><circle cx="180" cy="0" r="4" fill="gold"/><circle cx="200" cy="-5" r="4" fill="#ef4444"/>
+                    </g>
+                    <path d="M90 300 L90 315 Q100 320 110 315 L110 305" fill="#a16207"/><path d="M150 305 L150 315 Q160 320 170 315 L170 300" fill="#a16207"/>
+                    <g id="leftArm">
+                        <path d="M60 160 Q40 200 50 220" stroke="#f1f5f9" stroke-width="25" stroke-linecap="round" fill="none"/>
+                        <circle cx="50" cy="220" r="12" fill="url(#skinGradient)"/>
+                    </g>
+                    <g id="rightArm">
+                        <path d="M200 160 Q220 200 210 220" stroke="#f1f5f9" stroke-width="25" stroke-linecap="round" fill="none"/>
+                        <circle cx="210" cy="220" r="12" fill="url(#skinGradient)"/>
+                    </g>
+                    <path d="M70 140 L190 140 L195 260 Q130 270 65 260 Z" fill="url(#goldGradient)" opacity="0.9"/>
+                    <path d="M70 140 H190 V160 H70 Z" fill="#1e3a8a" opacity="0.3"/><path d="M68 180 H192 V200 H68 Z" fill="#7e22ce" opacity="0.3"/><path d="M66 220 H194 V240 H66 Z" fill="#991b1b" opacity="0.3"/>
+                    <g id="breastplate" transform="translate(95, 160)">
+                        <rect x="0" y="0" width="70" height="70" rx="10" fill="#fbbf24" stroke="#b45309" stroke-width="2"/>
+                        <circle cx="15" cy="15" r="6" fill="#ef4444"/><circle cx="35" cy="15" r="6" fill="#facc15"/><circle cx="55" cy="15" r="6" fill="#16a34a"/><circle cx="15" cy="35" r="6" fill="#2dd4bf"/><circle cx="35" cy="35" r="6" fill="#2563eb"/><circle cx="55" cy="35" r="6" fill="#fff"/><circle cx="15" cy="55" r="6" fill="#f97316"/><circle cx="35" cy="55" r="6" fill="#78716c"/><circle cx="55" cy="55" r="6" fill="#a855f7"/>
+                    </g>
+                    <path d="M100 160 L100 140 M160 160 L160 140" stroke="gold" stroke-width="4"/><path d="M65 240 Q130 250 195 240 L195 255 Q130 265 65 255 Z" fill="#f8fafc"/>
+                    <g transform="translate(130, 90)">
+                        <path d="M-35 10 Q-40 40 0 55 Q40 40 35 10 Z" fill="#4a4036"/><ellipse cx="0" cy="0" rx="35" ry="32" fill="url(#skinGradient)"/><circle cx="-35" cy="0" r="8" fill="url(#skinGradient)"/><circle cx="35" cy="0" r="8" fill="url(#skinGradient)"/><g class="eye-blink"><circle cx="-12" cy="-2" r="5" fill="#1f2937"/><circle cx="12" cy="-2" r="5" fill="#1f2937"/><circle cx="-10" cy="-4" r="2" fill="white"/><circle cx="14" cy="-4" r="2" fill="white"/></g><path d="M-8 12 Q0 18 8 12" stroke="#78350f" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="0" cy="6" r="3" fill="#d4a782"/><path d="M-40 -15 Q-45 -65 0 -70 Q45 -65 40 -15 Z" fill="#f8fafc" stroke="#e2e8f0"/><path d="M-40 -15 Q0 -5 40 -15 L40 -25 Q0 -15 -40 -25 Z" fill="#1e3a8a"/><rect x="-35" y="-30" width="70" height="14" rx="3" fill="url(#goldGradient)" stroke="#b45309" stroke-width="1"/><text x="0" y="-20" font-family="'Noto Sans Hebrew', sans-serif" font-size="10" text-anchor="middle" fill="#78350f" font-weight="bold">קֹדֶשׁ לַיהוָה</text></g></g>
+            </svg>
+        </div>
+
+        <!-- Lots Selector -->
+        <div class="flex flex-col items-center mb-6">
+            <label class="text-xs text-amber-500/80 mb-2 uppercase tracking-wide font-semibold">จำนวนอัญมณีที่ต้องการ (1-12)</label>
+            <div class="flex flex-wrap justify-center gap-2 bg-slate-800/80 p-3 rounded-xl border border-slate-700 max-w-md shadow-inner">
+                <div id="diceSelector" class="contents"></div>
+            </div>
+        </div>
+
+        <!-- Prayer Input -->
+        <div class="prayer-input-container">
+            <input type="text" id="prayerIntent" class="prayer-input" placeholder="พิมพ์หัวข้ออธิษฐาน หรือ อธิษฐานขอการทอดสลาก " onkeypress="if(event.key === 'Enter') castLots()">
+        </div>
+
+        <!-- Stones Area -->
+        <div class="bg-slate-800/40 backdrop-blur-sm p-4 rounded-2xl border border-slate-700 mb-6 min-h-[100px] flex items-center justify-center" id="diceContainer">
+            <span class="text-slate-500 text-sm italic" id="placeholderText">เลือกจำนวนแล้วกดปุ่มเพื่อเริ่มทอดสลาก</span>
+        </div>
+
+        <!-- Result -->
+        <div class="text-center mb-8">
+            <div class="text-amber-500/80 mb-1 text-sm uppercase tracking-wider font-semibold">ผลรวมแห่งคำพยากรณ์</div>
+            <div id="result" class="text-6xl font-bold text-white drop-shadow-lg font-serif">-</div>
+            
+            <div id="bibleSection" class="hidden mt-6 transition-all duration-500">
+                <button onclick="getBibleVerses()" id="bibleBtn" class="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white text-sm font-semibold py-3 px-8 rounded-full shadow-lg border border-yellow-400/30 flex items-center justify-center gap-3 mx-auto transition-all hover:scale-105 group">
+                    <span class="text-xl group-hover:rotate-12 transition-transform">📜</span> 
+                    <span>เปิดเผยถ้อยคำจากพระคัมภีร์</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="verseContainer" class="mb-8 hidden scroll-mt-4 space-y-4"></div>
+
+        <div class="flex gap-4 justify-center mb-8">
+            <button onclick="castLots()" id="castBtn" class="btn-press flex-1 bg-gradient-to-br from-indigo-600 to-blue-700 hover:from-indigo-500 hover:to-blue-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg border-b-4 border-indigo-900 active:border-indigo-700 text-lg flex items-center justify-center gap-2">
+                <span>🙌</span> ให้มหาปุโรหิตเสี่ยงทาย
+            </button>
+            <button onclick="resetGame()" class="btn-press bg-slate-700 hover:bg-slate-600 text-white font-semibold py-4 px-6 rounded-xl shadow border-b-4 border-slate-900 active:border-slate-700" title="เริ่มใหม่">
+                ↺
+            </button>
+        </div>
+
+        <!-- Search Section -->
+     <!--    <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-600 shadow-xl mb-8">
+            <h3 class="text-center text-amber-400 text-sm font-semibold mb-3 tracking-wide flex items-center justify-center gap-2">
+                <span>🔍</span> ค้นหาพระธรรมตามหัวข้อ
+            </h3>
+            <div class="flex gap-2">
+                <input type="text" id="searchInput" placeholder="เช่น ความรอด, การทรงนำ..." 
+                       class="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors"
+                       onkeypress="if(event.key === 'Enter') searchByKeyword()">
+                <button onclick="searchByKeyword()" id="searchBtn" class="bg-slate-700 hover:bg-slate-600 hover:text-amber-400 text-white font-bold py-2 px-5 rounded-lg border border-slate-600 transition-all active:scale-95">
+                    ค้นหา
+                </button>
+            </div>
+        </div> -->
+
+        <div class="canon-info">
+            <h4 class="text-amber-500 font-bold mb-2 text-center text-sm border-b border-slate-700 pb-1 inline-block px-4">📚 เกร็ดความรู้: สารบบ 88 vs 66 เล่ม</h4>
+            <div class="grid grid-cols-1 gap-3 text-left mt-2">
+                <div>
+                    <span class="text-indigo-300 font-bold">🇪🇹 สารบบเอธิโอเปีย (88 เล่ม):</span> 
+                    เป็นสารบบที่เก่าแก่และสมบูรณ์ที่สุดของคริสตจักรเอธิโอเปียออร์ทอดอกซ์เทวาฮีโด รักษาหนังสือหายากไว้ครบถ้วน เช่น <em>หนังสือเอโนค (Enoch)</em>, <em>หนังสือยูบิลี (Jubilees)</em>, และ <em>หนังสือมัคคาบี</em> ซึ่งบันทึกปัญญาญาณโบราณที่หาอ่านยาก
+                </div>
+                <div>
+                    <span class="text-slate-200 font-bold">✝️ สารบบโปรเตสแตนต์ (66 เล่ม):</span> 
+                    เป็นมาตรฐานสากลที่คริสตชนส่วนใหญ่ใช้ในปัจจุบัน (เดิม 39 + ใหม่ 27) เน้นหลักการทรงไถ่และความรอดที่เป็นพื้นฐานสำคัญ
+                </div>
+            </div>
+            <p class="mt-2 text-center italic text-amber-500/60 text-[10px]">
+                "การผสานทั้งสองสารบบช่วยให้ท่านได้รับถ้อยคำที่กว้างขวางและครอบคลุมมิติแห่งความเชื่อ"
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // *** PROXY CONFIGURATION: Calls server.js instead of Google directly ***
+        
+        let lotCount = 1;
+        let currentRoundTotal = 0;
+        let isCasting = false;
+
+        const diceContainer = document.getElementById('diceContainer');
+        const priestContainer = document.getElementById('priestContainer');
+        const castBtn = document.getElementById('castBtn');
+        const resultDisplay = document.getElementById('result');
+        const bibleSection = document.getElementById('bibleSection');
+        const verseContainer = document.getElementById('verseContainer');
+        const placeholderText = document.getElementById('placeholderText');
+        const prayerInput = document.getElementById('prayerIntent');
+        const diceSelector = document.getElementById('diceSelector');
+
+        for(let i=1; i<=12; i++) {
+            const btn = document.createElement('button');
+            btn.onclick = () => setLotCount(i);
+            btn.className = `dice-option w-8 h-8 rounded-lg border border-slate-600 flex items-center justify-center text-sm font-bold text-slate-300 hover:bg-slate-700 ${i===1 ? 'active' : ''}`;
+            btn.innerText = i;
+            btn.id = `btn-${i}`;
+            diceSelector.appendChild(btn);
+        }
+
+        function setLotCount(n) {
+            if (isCasting) return;
+            lotCount = n;
+            document.querySelectorAll('.dice-option').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${n}`).classList.add('active');
+            resetRoundUI();
+            diceContainer.innerHTML = '';
+            diceContainer.appendChild(placeholderText);
+            placeholderText.style.display = 'block';
+        }
+
+        function resetRoundUI() {
+            resultDisplay.innerText = '-';
+            bibleSection.classList.add('hidden');
+            verseContainer.classList.add('hidden');
+            verseContainer.innerHTML = '';
+            currentRoundTotal = 0;
+        }
+
+        function getRandomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+        
+        function getRandomStoneType() {
+            const types = ['stone-sardius', 'stone-topaz', 'stone-carbuncle', 'stone-emerald', 'stone-sapphire', 'stone-diamond', 'stone-ligure', 'stone-agate', 'stone-amethyst', 'stone-beryl', 'stone-onyx', 'stone-jasper'];
+            return types[Math.floor(Math.random() * types.length)];
+        }
+
+        function castLots() {
+            if (isCasting) return;
+            isCasting = true;
+            resetRoundUI();
+            castBtn.disabled = true; castBtn.classList.add('opacity-50');
+            placeholderText.style.display = 'none';
+            resultDisplay.innerText = '...';
+            priestContainer.classList.add('casting');
+            diceContainer.innerHTML = '';
+
+            setTimeout(() => {
+                priestContainer.classList.remove('casting');
+                let roundTotal = 0;
+                for(let i=0; i<lotCount; i++) {
+                    const val = getRandomInt(1, 88); 
+                    roundTotal += val;
+                    const stoneType = getRandomStoneType();
+                    const rotation = Math.floor(Math.random() * 60) - 30;
+                    const stone = document.createElement('div');
+                    stone.className = `lot-stone ${stoneType}`;
+                    stone.innerText = val;
+                    stone.style.setProperty('--rotation', `${rotation}deg`);
+                    stone.style.transitionDelay = `${i * 0.05}s`;
+                    diceContainer.appendChild(stone);
+                }
+                setTimeout(() => {
+                    document.querySelectorAll('.lot-stone').forEach(s => s.classList.add('revealed'));
+                }, 50);
+                finishCast(roundTotal);
+            }, 2000);
+        }
+
+        function finishCast(total) {
+            currentRoundTotal = total;
+            setTimeout(() => {
+                isCasting = false;
+                castBtn.disabled = false; castBtn.classList.remove('opacity-50');
+                resultDisplay.innerText = total;
+                bibleSection.classList.remove('hidden');
+            }, lotCount * 50 + 600);
+        }
+
+        function resetGame() {
+            currentRoundTotal = 0;
+            document.getElementById('searchInput').value = '';
+            prayerInput.value = '';
+            resetRoundUI();
+            diceContainer.innerHTML = '';
+            diceContainer.appendChild(placeholderText);
+            placeholderText.style.display = 'block';
+        }
+
+        // --- Server Proxy Function with Auto-Retry ---
+        async function fetchGeminiVerses(prompt, loadingMsg, btnElement) {
+            const originalText = btnElement.innerHTML;
+            btnElement.disabled = true;
+            btnElement.innerHTML = `<span>⏳</span> ${loadingMsg}`;
+            verseContainer.classList.remove('hidden');
+            verseContainer.innerHTML = '<div class="text-center text-slate-400 italic py-8">...มหาปุโรหิตกำลังอธิษฐานขอการทรงนำ...</div>';
+            verseContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            const maxRetries = 3;
+            let attempt = 0;
+            let success = false;
+
+            while (attempt < maxRetries && !success) {
+                try {
+                    // Call Node.js Proxy
+                    const response = await fetch('/api/get-verses', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ prompt: prompt })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.error) throw new Error(data.error);
+
+                    if (data.verses || data.theme) {
+                         displayVerses(data);
+                         success = true;
+                    } else {
+                         throw new Error("รูปแบบข้อมูลไม่ถูกต้อง");
+                    }
+
+                } catch (error) {
+                    attempt++;
+                    console.warn(`Attempt ${attempt} failed: ${error.message}`);
+                    
+                    if (attempt >= maxRetries) {
+                        verseContainer.innerHTML = `<div class="text-center text-red-400 bg-red-900/20 p-4 rounded-lg border border-red-800">
+                            ระบบกำลังทำงานหนัก (Overloaded) หรือเกิดข้อผิดพลาด<br>
+                            <span class="text-xs opacity-50">${error.message}</span>
+                        </div>`;
+                    } else {
+                        const delay = attempt * 1000; // Backoff
+                        verseContainer.innerHTML = `<div class="text-center text-amber-400 italic py-8">...กำลังเชื่อมต่อจิตวิญญาณอีกครั้ง (${attempt}/${maxRetries})...</div>`;
+                        await new Promise(r => setTimeout(r, delay));
+                    }
+                }
+            }
+            
+            btnElement.disabled = false;
+            btnElement.innerHTML = originalText;
+        }
+
+        function getBibleVerses() {
+            if (!currentRoundTotal) return;
+            const btn = document.getElementById('bibleBtn');
+            const userIntent = prayerInput.value.trim();
+            const intentText = userIntent ? `User Question: "${userIntent}"` : "General Guidance";
+
+            const prompt = `
+                User cast lots (1-88). Sum: ${currentRoundTotal}. ${intentText}. 
+                Act as High Priest (Ethiopian & Protestant canons).
+                
+                1. Interpret number ${currentRoundTotal} theme spiritually.
+                2. Select 4 verses (2 Ethiopian Canon prioritized, 2 Protestant).
+                
+                Output JSON Only:
+                {
+                    "theme": "Thai Theme Name",
+                    "numerology": "Thai brief explanation of number meaning",
+                    "verses": [
+                        { "book": "Book Name", "ref": "Ch:Ver", "text": "Thai text" },
+                        { "book": "Book Name", "ref": "Ch:Ver", "text": "Thai text" },
+                        { "book": "Book Name", "ref": "Ch:Ver", "text": "Thai text" },
+                        { "book": "Book Name", "ref": "Ch:Ver", "text": "Thai text" }
+                    ]
+                }
+            `;
+            fetchGeminiVerses(prompt, "กำลังค้นหา...", btn);
+        }
+
+        function searchByKeyword() {
+            const keyword = document.getElementById('searchInput').value.trim();
+            if (!keyword) return;
+            const btn = document.getElementById('searchBtn');
+            const prompt = `
+                The user seeks biblical wisdom on the topic: "${keyword}".
+                Act as a wise High Priest knowledgeable in both Ethiopian and Protestant canons.
+                Find exactly 4 distinct verses providing wisdom on "${keyword}".
+                Output JSON Only:
+                {
+                    "theme": "หัวข้อ: ${keyword}",
+                    "numerology": "",
+                    "verses": [
+                        { "book": "Book Name", "ref": "Chapter:Verse", "text": "Thai text" },
+                        { "book": "Book Name", "ref": "Chapter:Verse", "text": "Thai text" },
+                        { "book": "Book Name", "ref": "Chapter:Verse", "text": "Thai text" },
+                        { "book": "Book Name", "ref": "Chapter:Verse", "text": "Thai text" }
+                    ]
+                }
+            `;
+            fetchGeminiVerses(prompt, "กำลังค้นหา...", btn);
+        }
+
+        function displayVerses(data) {
+            verseContainer.innerHTML = '';
+            if(data.theme) {
+                const th = document.createElement('div');
+                th.className = 'text-center mb-6';
+                th.innerHTML = `<div class="inline-block relative px-6 py-2 mb-2"><div class="absolute inset-0 bg-amber-500/10 transform -skew-x-12 rounded-lg border border-amber-500/30"></div><span class="relative text-amber-300 font-bold tracking-wider text-lg">${data.theme}</span></div>`;
+                verseContainer.appendChild(th);
+            }
+            if(data.numerology) {
+                const nb = document.createElement('div');
+                nb.className = 'bg-slate-800/50 p-3 rounded-lg border border-indigo-500/30 mb-6 text-center mx-auto max-w-sm';
+                nb.innerHTML = `<span class="text-indigo-300 text-xs font-bold uppercase">ความหมายแห่งตัวเลข</span><p class="text-slate-300 text-sm italic mt-1">"${data.numerology}"</p>`;
+                verseContainer.appendChild(nb);
+            }
+            
+            data.verses.forEach((v, index) => {
+                const box = document.createElement('div');
+                box.className = 'scripture-box';
+                box.style.animationDelay = `${index * 150}ms`;
+                let badge = index < 2 ? '<span class="text-[10px] bg-indigo-900 text-indigo-200 px-2 py-0.5 rounded border border-indigo-700 ml-2">Ethiopian 88</span>' : '<span class="text-[10px] bg-slate-700 text-slate-200 px-2 py-0.5 rounded border border-slate-600 ml-2">Protestantism 66</span>';
+                box.innerHTML = `<div class="flex items-center mb-2"><div class="font-bold text-amber-400 text-lg">${v.book} ${v.ref}</div>${badge}</div><div class="text-slate-200 font-light leading-relaxed font-serif text-lg">"${v.text}"</div>`;
+                verseContainer.appendChild(box);
+            });
+            verseContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    </script>
+</body>
+</html>
