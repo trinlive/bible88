@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ปฏิทินแบบตาราง | Biblical Calendar</title>
+    
+    <link rel="stylesheet" href="css/style.css?v=15">
+    <link rel="stylesheet" href="css/style_navbar.css?v=1">
+    <link rel="stylesheet" href="css/style_calendarTable.css?v=3">
+</head>
+<body>
+
+    <div id="navbar-placeholder"></div>
+
+    <div class="main-content">
+        <div class="controls-wrapper">
+            <div class="year-selector-container">
+                <button onclick="changeYear(-1)" class="nav-btn">❮</button>
+                <select id="yearSelect" onchange="loadCalendar(this.value)"></select>
+                <button onclick="changeYear(1)" class="nav-btn">❯</button>
+            </div>
+
+            <div class="month-selector-container">
+                <button onclick="changeMonth(-1)" class="nav-btn">❮</button>
+                <span id="currentMonthDisplay">เดือนที่ 1</span>
+                <button onclick="changeMonth(1)" class="nav-btn">❯</button>
+            </div>
+        </div>
+
+        <div class="subtitle">
+            <div id="calendarSubtitleText">True Lunar | ปฏิทินแบบตาราง</div>
+            <div id="seasonBadge" class="stats-badge" style="display:none;"></div>
+            <div id="yearStats" class="stats-badge" style="display:none; margin-left: 10px;"></div>
+        </div>
+
+        <div id="loading" style="text-align:center; padding:40px; color:#666;">⏳ กำลังโหลดข้อมูล...</div>
+
+        <div class="calendar-grid-container" id="calendarGrid" style="display:none;">
+            <div class="grid-header">อา.</div>
+            <div class="grid-header">จ.</div>
+            <div class="grid-header">อ.</div>
+            <div class="grid-header">พ.</div>
+            <div class="grid-header">พฤ.</div>
+            <div class="grid-header">ศ.</div>
+            <div class="grid-header">ส.</div>
+            
+            <div id="gridDays" class="grid-days"></div>
+        </div>
+
+    </div>
+
+    <script src="js/moonPhase.js?v=5"></script>
+    <script src="js/calendarTable.js?v=5"></script>
+    
+    <script src="js/navbar.js?v=1"></script>
+
+</body>
+</html>

@@ -1,5 +1,5 @@
 // public/js/calendar.js
-// Update: Hebrew Date format to "วันที่ DD.MM.YYYY" (Bold, Dark Red)
+// Update: Fix Mobile Safari display issue (display: '' instead of 'table')
 
 // ข้อมูลปีฮีบรู (2025-2036)
 const hebrewYearInfo = {
@@ -26,7 +26,7 @@ function getTodayString() {
     return `${year}-${month}-${day}`;
 }
 
-// ฟังก์ชันระบุข้อมูลฤดูกาล (สีและคำอธิบาย)
+// ฟังก์ชันระบุข้อมูลฤดูกาล
 function getSeasonInfo(monthNumber) {
     if (monthNumber >= 1 && monthNumber <= 3) {
         return { name: "🌱 ฤดูใบไม้ผลิ", desc: "เก็บเกี่ยวข้าวบาร์เลย์", color: "#4caf50" }; 
@@ -130,29 +130,23 @@ function loadCalendar(year) {
             let todayRow = null;
 
             data.forEach(item => {
-                // Header ฤดูกาล (colspan=4 เพราะมี 4 คอลัมน์)
+                // Header ฤดูกาล
                 if(item.lunar.day === 1) {
                     const season = getSeasonInfo(item.lunar.month);
                     const seasonRow = document.createElement('tr');
+                    
                     seasonRow.innerHTML = `
-                        <td colspan="4" style="
-                            background-color: ${season.color}; 
-                            color: white; 
-                            padding: 12px 15px; 
-                            text-align: left;
-                            border-radius: 8px 8px 0 0;
-                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                        ">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <div>
-                                    <span style="font-size:1.1em; font-weight:bold; margin-right:10px;">
+                        <td colspan="4" class="season-cell" style="background-color: ${season.color}; color: #ffffff;">
+                            <div class="season-flex-container">
+                                <div class="season-left-group">
+                                    <span class="season-name">
                                         ${season.name}
                                     </span>
-                                    <span style="font-size:0.9em; opacity:0.9; background:rgba(0,0,0,0.1); padding:2px 8px; border-radius:10px;">
+                                    <span class="season-desc" style="color: rgba(255,255,255,0.9);">
                                         ${season.desc}
                                     </span>
                                 </div>
-                                <div style="font-weight:bold; font-size:1em; text-shadow:0 1px 2px rgba(0,0,0,0.2);">
+                                <div class="season-month-label">
                                     ${item.lunar.monthName}
                                 </div>
                             </div>
@@ -161,7 +155,7 @@ function loadCalendar(year) {
                     tbody.appendChild(seasonRow);
                 }
 
-                // สร้างแถวข้อมูล
+                // สร้างแถวข้อมูลปกติ
                 const tr = document.createElement('tr');
                 const isToday = (item.gregorianDate === todayStr);
                 const fullText = item.lunar.phase || '';
@@ -197,16 +191,15 @@ function loadCalendar(year) {
                         `</ul>`;
                 }
 
-                // --- FORMATTING DATE ---
-                // จัดรูปแบบวันที่ฮีบรู: DD.MM.YYYY
                 const hDay = String(item.lunar.day).padStart(2, '0');
                 const hMonth = String(item.lunar.month).padStart(2, '0');
-                const hYear = info.year; // ปีฮีบรูจาก info
+                const hYear = info.year; 
 
+                // HTML Structure พร้อม Flexbox Fix สำหรับมือถือ
                 tr.innerHTML = `
                     <td>
-                        ${item.date}
-                        ${isToday ? '<br><span class="badge" style="background:#ef4444; color:white;">📍 วันนี้</span>' : ''}
+                        <div class="date-text">${item.date}</div>
+                        ${isToday ? '<div class="today-badge badge" style="background:#ef4444; color:white; margin-top:4px;">📍 วันนี้</div>' : ''}
                     </td>
                     <td>
                         <div style="font-weight:bold; color:#2c3e50; font-size:0.95em; margin-bottom:2px;">
@@ -222,8 +215,11 @@ function loadCalendar(year) {
                 tbody.appendChild(tr);
             });
 
+            // --- FIX IS HERE ---
             if(loading) loading.style.display = 'none'; 
-            if(table) table.style.display = 'table';
+            
+            // แก้ไข: ใช้ค่าว่าง '' เพื่อให้ Browser ใช้ค่า display จาก CSS (block บนมือถือ, table บนคอม)
+            if(table) table.style.display = ''; 
             
             if(todayRow) {
                 setTimeout(() => {

@@ -76,10 +76,10 @@ function getCalendarData(selectedYear) {
             if (lunarDay === 7 || lunarDay === 14 || lunarDay === 21 || lunarDay === 28) isShabbath = true;
             if (lunarDay === 6 || lunarDay === 13 || lunarDay === 20 || lunarDay === 27) phaseItems.push("🕯️ เข้าสะบาโต 18:00 น.");
             if (lunarDay === 7 || lunarDay === 14 || lunarDay === 21 || lunarDay === 28) phaseItems.push("✨ ออกสะบาโต 18:00 น.");
-            if (lunarDay === 1) phaseItems.push("🌑 New Moon");
-            else if (lunarDay === 8) phaseItems.push("🌓 First Quarter");
-            else if (lunarDay === 15) phaseItems.push("🌕 Full Moon");
-            else if (lunarDay === 22) phaseItems.push("🌗 Last Quarter");
+            if (lunarDay === 1) phaseItems.push("🌑 New Moon (วันต้นสัปดาห์ที่ 1)");
+            else if (lunarDay === 8) phaseItems.push("🌓 First Quarter (วันต้นสัปดาห์ที่ 2)");
+            else if (lunarDay === 15) phaseItems.push("🌕 Full Moon (วันต้นสัปดาห์ที่ 3)");
+            else if (lunarDay === 22) phaseItems.push("🌗 Last Quarter (วันต้นสัปดาห์ที่ 4)");
 
             if (monthNumber === 1 && lunarDay === 14) phaseItems.push("✨ ปัสกา");
             if (monthNumber === 2 && lunarDay === 14) phaseItems.push("✨ ปัสการอบสอง");

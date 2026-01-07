@@ -4,21 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ปฏิทินรายปี | Biblical Calendar</title>
-    <link rel="stylesheet" href="css/style.css?v=12">
+    <link rel="stylesheet" href="css/style.css?v=14">
+    <link rel="stylesheet" href="css/style_navbar.css?v=1">
 </head>
 <body>
 
-<nav class="top-navbar">
-    <div class="logo-area">🗓️ ปฏิทินพระคัมภีร์</div>
-    
-    <div class="nav-menu">
-        <div id="moonPhaseWidget"></div>
-
-        <a href="calendar.html" class="nav-item active">📅 ปฏิทินรายปี</a>
-        <a href="converter.html" class="nav-item">🔄 แปลงวันที่</a>
-        <a href="index.html" class="nav-item" style="color:#e74c3c;">⬅ ออก</a>
-    </div>
-</nav>
+<div id="navbar-placeholder"></div>
 
 <div class="main-content">
     <div class="year-selector-container" style="display:flex; justify-content:center; align-items:center; gap:15px; margin-bottom: 25px;">
@@ -93,7 +84,7 @@
     <div id="loading" style="text-align:center; padding:40px; color:#666;">⏳ กำลังโหลดข้อมูล...</div>
     <div id="noResults" style="text-align:center; padding:20px; display:none; color:#777;">❌ ไม่พบข้อมูล</div>
 
-<table id="calTable" style="display: none;">
+    <table id="calTable" style="display: none;">
         <thead>
             <tr>
                 <th width="15%">วันที่สากล</th>
@@ -105,8 +96,8 @@
         <tbody></tbody>
     </table>
 </div>
-
-<script src="js/calendar.js?v=11"></script>
+<script src="js/navbar.js?v=1"></script>
+<script src="js/calendar.js?v=14"></script>
 <script src="js/moonPhase.js?v=5"></script>
 
 </body>

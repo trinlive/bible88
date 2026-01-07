@@ -1,0 +1,153 @@
+/* public/css/style_calendarTable.css */
+
+/* --- Controls Wrapper --- */
+.controls-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    background-color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+    border: 1px solid #f0f0f0;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    flex-direction: column; /* Stack vertically */
+}
+
+/* --- Container --- */
+.year-selector-container,
+.month-selector-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    height: 42px;
+    background: #f8f9fa;
+    border-radius: 25px;
+    padding: 0 4px;
+    border: 1px solid #eee;
+    width: 100%;
+    max-width: 320px;
+    box-sizing: border-box;
+}
+
+/* --- Buttons --- */
+.nav-btn {
+    width: 34px; height: 34px; border-radius: 50%; border: none;
+    background: white; color: #555; font-weight: bold; cursor: pointer;
+    transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+    font-size: 1em; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;
+    margin: 0 4px; padding: 0; line-height: 1;
+}
+.nav-btn:hover { background: #3498db; color: white; transform: translateY(-1px); box-shadow: 0 3px 6px rgba(52, 152, 219, 0.2); }
+.nav-btn:active { transform: scale(0.95); }
+
+/* --- Select/Span --- */
+select#yearSelect {
+    height: 34px; line-height: 34px; padding: 0 20px; font-size: 1.05em;
+    border: none; background: transparent; outline: none; font-family: 'Sarabun', sans-serif;
+    color: #2c3e50; cursor: pointer; font-weight: bold; text-align: center; text-align-last: center; flex-grow: 1;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23bdc3c7%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat; background-position: right 5px center; background-size: 10px auto;
+}
+
+#currentMonthDisplay {
+    height: 34px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.05em; font-weight: 600; color: #34495e; padding: 0 10px;
+    user-select: none; white-space: nowrap; flex-grow: 1;
+}
+
+/* --- Calendar Grid --- */
+.calendar-grid-container {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    background: white; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #eaeaea;
+}
+.grid-header {
+    background-color: #34495e; color: white; padding: 12px 5px;
+    text-align: center; font-weight: 600; font-size: 0.95em;
+}
+.grid-days { display: contents; }
+
+.calendar-cell {
+    border-right: 1px solid #f5f5f5; border-bottom: 1px solid #f5f5f5;
+    min-height: 110px; padding: 10px; position: relative;
+    transition: all 0.2s; cursor: pointer; background: #fff;
+    display: flex; flex-direction: column; justify-content: space-between;
+}
+.calendar-cell:hover { background-color: #f0f8ff; z-index: 1; box-shadow: 0 0 10px rgba(52, 152, 219, 0.1); }
+.calendar-cell:nth-child(7n), .calendar-cell:nth-child(7n+1) { background-color: #fdfdfd; }
+.calendar-cell.empty { background-color: #fcfcfc; pointer-events: none; }
+
+.is-today { background-color: #e3f2fd !important; box-shadow: inset 0 0 0 2px #2196f3; }
+.is-shabbath-cell { background-color: #f4faff; }
+.is-shabbath-cell::after { content: "🕯️"; position: absolute; top: 8px; right: 8px; font-size: 0.9em; opacity: 0.7; }
+.is-feast-cell { background: linear-gradient(135deg, #fff 60%, #fff8e1 100%); border-left: 4px solid #f1c40f; }
+
+/* Cell Content */
+.cell-header { display: flex; justify-content: space-between; align-items: center; }
+.gregorian-num { font-size: 1em; font-weight: 700; color: #7f8c8d; }
+.day-abbr { font-size: 0.75em; color: #bdc3c7; }
+.hebrew-num { font-size: 1.8em; font-weight: 800; color: #2c3e50; text-align: center; margin: 5px 0; line-height: 1; }
+
+.cell-footer { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; min-height: 20px; align-items: center; margin-top: auto; }
+
+/* --- ICON & TAG STYLES --- */
+.event-icon { font-size: 1.1em; cursor: help; transition: transform 0.2s; line-height: 1; }
+.event-icon:hover { transform: scale(1.2); }
+
+/* Tag Style (Desktop Default) */
+.event-responsive-tag {
+    font-size: 0.7em; background: #9b59b6; color: white;
+    padding: 3px 8px; border-radius: 12px; white-space: nowrap;
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+    box-shadow: 0 2px 4px rgba(155, 89, 182, 0.2);
+    display: inline-block;
+    cursor: help;
+}
+
+.shabbath-tag {
+    background-color: #3498db !important; /* สีฟ้า */
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
+}
+
+/* Visibility Control Classes */
+.show-mobile { display: none; }  /* ซ่อนไอคอนมือถือในจอปกติ */
+.show-desktop { display: inline; } /* แสดงข้อความในจอปกติ */
+
+/* --- Mobile Responsive --- */
+@media (max-width: 768px) {
+    .controls-wrapper { padding: 15px; width: 100%; max-width: 100%; box-sizing: border-box; }
+    .year-selector-container, .month-selector-container { max-width: 100%; }
+    .nav-btn { width: 35px; height: 35px; }
+    
+    .calendar-cell { min-height: 70px; padding: 5px; }
+    .hebrew-num { font-size: 1.3em; }
+    .gregorian-num { font-size: 0.85em; }
+    .day-abbr { display: none; }
+    
+    /* Toggle View on Mobile */
+    .show-desktop { display: none; } /* ซ่อนข้อความยาว */
+    .show-mobile { display: inline; } /* แสดงไอคอน */
+
+    /* Reset Tag style to look like Icon on mobile */
+    .event-responsive-tag {
+        background: transparent !important;
+        padding: 0;
+        box-shadow: none;
+        color: #333;
+        font-size: 1.1em;
+        width: auto;
+        max-width: none;
+        margin: 0 1px;
+    }
+    
+    .is-shabbath-cell::after { top: 2px; right: 2px; font-size: 0.7em; }
+    .grid-header { font-size: 0.8em; padding: 8px 2px; }
+}
