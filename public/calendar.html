@@ -4,26 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ปฏิทินรายปี | Biblical Calendar</title>
-    <link rel="stylesheet" href="css/style.css?v=14">
+    <link rel="stylesheet" href="css/style.css?v=15">
     <link rel="stylesheet" href="css/style_navbar.css?v=1">
+    <link rel="stylesheet" href="css/style_calendarTable.css?v=3">
 </head>
 <body>
 
 <div id="navbar-placeholder"></div>
 
 <div class="main-content">
-    <div class="year-selector-container" style="display:flex; justify-content:center; align-items:center; gap:15px; margin-bottom: 25px;">
-        <button onclick="changeYear(-1)" style="
-            width: 40px; height: 40px; border-radius: 50%; border: 2px solid #3498db; background: white; color: #3498db; 
-            font-weight: bold; font-size: 1.2em; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">❮</button>
-            
-        <select id="yearSelect" onchange="loadCalendar(this.value)" style="margin: 0;"></select>
-        
-        <button onclick="changeYear(1)" style="
-            width: 40px; height: 40px; border-radius: 50%; border: 2px solid #3498db; background: white; color: #3498db; 
-            font-weight: bold; font-size: 1.2em; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">❯</button>
+    
+    <div class="controls-wrapper">
+        <div class="year-selector-container">
+            <button onclick="changeYear(-1)" class="nav-btn">❮</button>
+            <select id="yearSelect" onchange="loadCalendar(this.value)"></select>
+            <button onclick="changeYear(1)" class="nav-btn">❯</button>
+        </div>
     </div>
 
     <div class="search-container">

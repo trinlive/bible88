@@ -1,5 +1,5 @@
 // public/js/calendarTable.js
-// Update: Enable Year Stats + Full Features
+// Update: Add Link to Ethiopian Canon App
 
 const hebrewYearInfo = {
     "2025": { year: "5786", desc: "12 เดือน" }, 
@@ -23,6 +23,17 @@ const dayMap = { "อาทิตย์": 0, "จันทร์": 1, "อัง
 document.addEventListener('DOMContentLoaded', () => {
     initYearSelect();
 });
+
+// ✅ ฟังก์ชันช่วยสร้างลิงก์ไปยังแอปอ่านพระคัมภีร์
+function linkifyScripture(text) {
+    // Regex จับแพทเทิร์น [ชื่อหนังสือ บท:ข้อ] หรือ [ชื่อหนังสือ บท]
+    // ตัวอย่าง: [โยเบล 2:2] -> <a href="...">โยเบล 2:2</a>
+    return text.replace(/\[(.*?)\s(\d+)(?::(\d+)(?:-(\d+))?)?\]/g, (match, book, chapter, verse) => {
+        // สร้าง URL พร้อม Parameter
+        const url = `ethiopianCanon.html?book=${encodeURIComponent(book)}&chapter=${chapter}`;
+        return `[<a href="${url}" target="_blank" class="scripture-link">${book} ${chapter}${verse ? ':'+verse : ''}</a>]`;
+    });
+}
 
 function initYearSelect() {
     const select = document.getElementById('yearSelect');
@@ -48,13 +59,11 @@ function loadCalendar(year) {
     const loading = document.getElementById('loading');
     const grid = document.getElementById('calendarGrid');
     const subtitle = document.getElementById('calendarSubtitleText');
-    
-    // 1. อ้างอิง Element
     const stats = document.getElementById('yearStats');
     
     if(loading) loading.style.display = 'block';
     if(grid) grid.style.display = 'none';
-    if(stats) stats.style.display = 'none'; // ซ่อนก่อนโหลดใหม่
+    if(stats) stats.style.display = 'none';
 
     const info = hebrewYearInfo[year] || {year:'--', desc:''};
     if (subtitle) subtitle.innerHTML = `True Lunar | ปีฮีบรู ${info.year} | ${info.desc}`;
@@ -63,12 +72,10 @@ function loadCalendar(year) {
         .then(res => res.json())
         .then(data => {
             currentData = data;
-            
-            // 2. คำนวณและแสดงผล Year Stats
             const totalDays = data.length;
             if(stats) {
                 stats.innerHTML = `📊 สรุปปีนี้: <strong>${totalDays}</strong> วัน / <strong>${(totalDays/7).toFixed(1)}</strong> สัปดาห์`;
-                stats.style.display = 'inline-block'; // สั่งให้แสดงผล
+                stats.style.display = 'inline-block';
             }
 
             const todayStr = getTodayString();
@@ -134,12 +141,12 @@ function renderMonth() {
 
         let eventHtml = '';
 
-        // History -> Icon
+        // --- 1. เหตุการณ์พระคัมภีร์ ---
         if (item.lunar.history && item.lunar.history.length > 0) {
             eventHtml += `<div class="event-icon" title="มีเหตุการณ์พระคัมภีร์">📖</div>`;
         }
 
-        // Phase / Feast
+        // --- 2. ดวงจันทร์ / เทศกาล ---
         if (item.lunar.phase) {
             const phases = item.lunar.phase.split(' / ');
             phases.forEach(p => {
@@ -152,7 +159,6 @@ function renderMonth() {
                     eventHtml += `<div class="event-icon" title="${text}">🌕</div>`;
                 }
                 else if (text.includes('เข้าสะบาโต')) {
-                    // Responsive Tag
                     eventHtml += `
                     <div class="event-responsive-tag shabbath-tag" title="${text}">
                         <span class="show-mobile">🕯️</span>
@@ -162,7 +168,6 @@ function renderMonth() {
                 else if (text.includes('✨') || text.includes('ฮานุกะห์') || text.includes('ปัสกา') || text.includes('เทศกาล')) {
                     cell.classList.add('is-feast-cell');
                     const cleanText = text.replace('✨', '').trim();
-                    // Responsive Tag
                     eventHtml += `
                     <div class="event-responsive-tag" title="${text}">
                         <span class="show-mobile">✨</span>
@@ -183,21 +188,58 @@ function renderMonth() {
             </div>
         `;
         
-        cell.onclick = () => {
-            let msg = `📅 ${item.date}\n`;
-            msg += `✡️ ${item.lunar.monthName} วันที่ ${item.lunar.day}\n\n`;
-            if(item.lunar.phase) msg += `📌 ${item.lunar.phase}\n\n`;
+        // คลิกเพื่อดูรายละเอียด (ใช้ linkifyScripture แปลงข้อความให้เป็นลิงก์)
+        cell.onclick = (e) => {
+            // ป้องกันการคลิกซ้อนหากกดที่ลิงก์โดยตรง
+            if (e.target.tagName === 'A') return;
+
+            let msg = `📅 ${item.date}<br>`;
+            msg += `✡️ ${item.lunar.monthName} วันที่ ${item.lunar.day}<br><br>`;
+            
+            if(item.lunar.phase) msg += `📌 ${item.lunar.phase}<br><br>`;
+            
             if(item.lunar.history && item.lunar.history.length > 0) {
-                msg += `📖 เหตุการณ์ในพระคัมภีร์:\n`;
-                item.lunar.history.forEach(h => msg += `- ${h}\n`);
+                msg += `📖 <b>เหตุการณ์ในพระคัมภีร์:</b><br>`;
+                item.lunar.history.forEach(h => {
+                    // ✅ เรียกใช้ฟังก์ชันแปลงลิงก์ที่นี่
+                    msg += `- ${linkifyScripture(h)}<br>`;
+                });
             } else {
                 msg += `- ไม่มีบันทึกเหตุการณ์ -`;
             }
-            alert(msg);
+            
+            // เปลี่ยนจาก Alert เป็น Modal จำลอง (หรือใช้ Alert ธรรมดาแต่ตัด HTML ออกถ้าไม่รองรับ)
+            // เนื่องจาก Alert ปกติไม่รองรับ HTML Link เราอาจต้องสร้าง Custom Modal ในอนาคต
+            // แต่เบื้องต้นถ้าใช้ Alert ธรรมดา ลิงก์จะไม่ทำงาน 
+            // **ดังนั้น**: ผมขอแนะนำให้ใช้ trick เล็กน้อย คือสร้าง overlay ง่ายๆ ขึ้นมาแสดงผลแทน alert
+            
+            showCustomModal(msg);
         };
 
         gridDays.appendChild(cell);
     });
+}
+
+// ✅ ฟังก์ชัน Modal ง่ายๆ เพื่อให้คลิกลิงก์ได้
+function showCustomModal(htmlContent) {
+    let modal = document.getElementById('calendarModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'calendarModal';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:10000;';
+        modal.innerHTML = `
+            <div style="background:white;padding:25px;border-radius:15px;max-width:90%;width:400px;box-shadow:0 5px 15px rgba(0,0,0,0.3);position:relative;">
+                <button onclick="document.getElementById('calendarModal').style.display='none'" style="position:absolute;top:10px;right:15px;border:none;background:none;font-size:1.5em;cursor:pointer;">&times;</button>
+                <div id="modalContent" style="line-height:1.6;color:#333;font-family:'Sarabun',sans-serif;"></div>
+                <div style="margin-top:20px;text-align:right;">
+                    <button onclick="document.getElementById('calendarModal').style.display='none'" style="background:#3498db;color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;">ปิด</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    document.getElementById('modalContent').innerHTML = htmlContent;
+    modal.style.display = 'flex';
 }
 
 function changeMonth(offset) {

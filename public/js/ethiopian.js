@@ -1,6 +1,7 @@
 /* public/js/ethiopian.js */
+// Update: Support URL Parameters & Thai Book Search
 
-// Data (Ethiopian Biblical Canon)
+// Data (Ethiopian Biblical Canon) - ข้อมูลเดิม
 const ethiopianCanon = [
     { category: "หนังสือธรรมบัญญัติ (Orit)", books: [ { en: "Genesis", th: "ปฐมกาล", ch: 50 }, { en: "Exodus", th: "อพยพ", ch: 40 }, { en: "Leviticus", th: "เลวีนิติ", ch: 27 }, { en: "Numbers", th: "กันดารวิถี", ch: 36 }, { en: "Deuteronomy", th: "เฉลยธรรมบัญญัติ", ch: 34 } ] },
     { category: "ประวัติศาสตร์และพันธสัญญา", books: [ { en: "Joshua", th: "โยชูวา", ch: 24 }, { en: "Judges", th: "ผู้วินิจฉัย", ch: 21 }, { en: "Ruth", th: "นางรูธ", ch: 4 }, { en: "1 Samuel", th: "1 ซามูเอล", ch: 31 }, { en: "2 Samuel", th: "2 ซามูเอล", ch: 24 }, { en: "1 Kings", th: "1 พงศ์กษัตริย์", ch: 22 }, { en: "2 Kings", th: "2 พงศ์กษัตริย์", ch: 25 }, { en: "1 Chronicles", th: "1 พงศาวดาร", ch: 29 }, { en: "2 Chronicles", th: "2 พงศาวดาร", ch: 36 }, { en: "Ezra", th: "เอสรา", ch: 10 }, { en: "Nehemiah", th: "เนหะมีย์", ch: 13 }, { en: "Tobit", th: "โทบิต", ch: 14, tag: "Deuterocanon" }, { en: "Judith", th: "ยูดิธ", ch: 16, tag: "Deuterocanon" }, { en: "Esther", th: "เอสเธอร์", ch: 10 }, { en: "1 Maccabees", th: "1 มัคคาบี", ch: 16, tag: "Deuterocanon" }, { en: "2 Maccabees", th: "2 มัคคาบี", ch: 15, tag: "Deuterocanon" }, { en: "Jubilees", th: "หนังสือยูบิลี", ch: 50, tag: "Ethiopian Only" }, { en: "Enoch", th: "หนังสือเอโนค", ch: 108, tag: "Ethiopian Only" } ] },
@@ -32,8 +33,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof lucide !== 'undefined') lucide.createIcons();
     const ph = document.getElementById('searchPlaceholder');
     if(ph) ph.classList.remove('hidden');
-    loadVerseOfDay();
-    loadDataFromServer(); // Load Data Sync
+    
+    // ✅ ตรวจสอบ URL Parameters เพื่อเปิดหนังสืออัตโนมัติ
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramBook = urlParams.get('book');
+    const paramChapter = urlParams.get('chapter');
+
+    if (paramBook) {
+        // รอสักครู่เพื่อให้ Sidebar Render เสร็จ
+        setTimeout(() => {
+            openChapterFromSearch(paramBook, parseInt(paramChapter) || 1);
+        }, 300);
+    } else {
+        // ถ้าไม่มี Param ค่อยโหลด Verse of Day
+        loadVerseOfDay();
+    }
+
+    loadDataFromServer();
 });
 
 // *** Helper: Fetch with Timeout ***
@@ -52,7 +68,7 @@ async function fetchWithTimeout(resource, options = {}) {
     }
 }
 
-// --- Sync Functions ---
+// --- Sync Functions (Code เดิม) ---
 async function syncDataToServer(type, data) {
     try {
         await fetch('/api/sync-data', {
@@ -68,7 +84,6 @@ async function syncDataToServer(type, data) {
 
 async function loadDataFromServer() {
     try {
-        // Load Bookmarks
         const bmRes = await fetch(`/api/get-data?userId=${userId}&type=bookmarks`);
         const bmData = await bmRes.json();
         if (bmData) {
@@ -76,12 +91,10 @@ async function loadDataFromServer() {
             localStorage.setItem('ethiopian_bookmarks', JSON.stringify(bookmarks));
             updateBookmarksList();
         } else {
-             // Fallback to local if server has nothing
              bookmarks = JSON.parse(localStorage.getItem('ethiopian_bookmarks')) || [];
              updateBookmarksList();
         }
 
-        // Load Lessons
         const lsRes = await fetch(`/api/get-data?userId=${userId}&type=lessons`);
         const lsData = await lsRes.json();
         if (lsData) {
@@ -94,7 +107,6 @@ async function loadDataFromServer() {
         }
     } catch (e) {
         console.error('Load data failed', e);
-        // Fallback
         bookmarks = JSON.parse(localStorage.getItem('ethiopian_bookmarks')) || [];
         updateBookmarksList();
         savedLessons = JSON.parse(localStorage.getItem('ethiopian_lessons')) || [];
@@ -102,12 +114,13 @@ async function loadDataFromServer() {
     }
 }
 
-// --- Navigation & UI ---
+// --- Navigation & UI (Code เดิม) ---
 function goHome() { 
     navHistory = []; 
     updateHistoryUI();
     hideAllViews(); 
     document.getElementById('welcomeScreen').classList.remove('hidden'); 
+    window.history.pushState({}, document.title, window.location.pathname); // ล้าง URL Param
 }
 function goToLessonPlanner() {
     hideAllViews();
@@ -129,7 +142,7 @@ function toggleSidebar() {
     overlay.classList.toggle('hidden');
 }
 
-// --- Settings ---
+// --- Settings (Code เดิม) ---
 function toggleSettings() { document.getElementById('settingsPanel').classList.toggle('hidden'); }
 function loadSettings() {
     const saved = JSON.parse(localStorage.getItem('ethiopian_settings'));
@@ -159,7 +172,7 @@ function setTheme(theme, save = true) {
     if (save) saveSettings({ theme: theme });
 }
 
-// --- Book Listing & Selection ---
+// --- Book Listing & Selection (Code เดิม) ---
 function renderSidebar() {
     const container = document.getElementById('bookListContainer');
     container.innerHTML = '';
@@ -181,7 +194,6 @@ function renderSidebar() {
     });
 }
 
-// *** Updated selectBook with Cache Check ***
 async function selectBook(book) {
     currentBook = book;
     hideAllViews();
@@ -208,7 +220,6 @@ async function selectBook(book) {
     }
 }
 
-// *** Updated renderChapterGrid with Colors ***
 function renderChapterGrid(book, cachedList = []) {
     const grid = document.getElementById('chapterGrid');
     grid.innerHTML = '';
@@ -232,7 +243,7 @@ function renderChapterGrid(book, cachedList = []) {
     }
 }
 
-// --- Reading & Content ---
+// --- Reading & Content (Code เดิม) ---
 function loadChapter(chapNum) {
     currentChapter = chapNum;
     hideAllViews();
@@ -281,7 +292,7 @@ async function fetchContent() {
     }
 }
 
-// --- Bookmarks ---
+// --- Bookmarks (Code เดิม) ---
 function toggleBookmarks() {
     const sidebar = document.getElementById('sidebar');
     if (sidebar.classList.contains('-translate-x-full')) toggleSidebar();
@@ -311,7 +322,7 @@ function saveBookmark() {
     bookmarks = bookmarks.filter(b => !(b.bookEn === newBookmark.bookEn && b.chapter === newBookmark.chapter));
     bookmarks.unshift(newBookmark);
     localStorage.setItem('ethiopian_bookmarks', JSON.stringify(bookmarks));
-    syncDataToServer('bookmarks', bookmarks); // Sync
+    syncDataToServer('bookmarks', bookmarks);
     const btn = document.getElementById('saveBookmarkBtn');
     const originalIcon = btn.innerHTML;
     btn.innerHTML = `<i data-lucide="check" class="w-6 h-6 text-green-500"></i>`;
@@ -345,11 +356,11 @@ function openBookmark(bookEn, chapter) { openChapterFromSearch(bookEn, chapter);
 function removeBookmark(timestamp) { 
     bookmarks = bookmarks.filter(b => b.timestamp !== timestamp); 
     localStorage.setItem('ethiopian_bookmarks', JSON.stringify(bookmarks)); 
-    syncDataToServer('bookmarks', bookmarks); // Sync
+    syncDataToServer('bookmarks', bookmarks);
     updateBookmarksList(); 
 }
 
-// --- Topic Search ---
+// --- Topic Search (Update: Improve openChapterFromSearch) ---
 async function performTopicSearch() {
     const input = document.getElementById('topicInput');
     const resultsDiv = document.getElementById('searchResults');
@@ -394,18 +405,35 @@ function renderSearchResults(results, query) {
     });
     lucide.createIcons();
 }
-function openChapterFromSearch(bookEnName, chapterNum) {
+
+// ✅ อัปเดตฟังก์ชันนี้ให้รองรับการค้นหาด้วยชื่อไทยหรือชื่ออังกฤษก็ได้
+function openChapterFromSearch(bookName, chapterNum) {
     let foundBook = null;
+    const searchTerm = bookName.toLowerCase().trim();
+
+    // 1. ค้นหาแบบตรงตัว (Exact Match) ทั้ง EN และ TH
     for (const cat of ethiopianCanon) {
-        const book = cat.books.find(b => b.en.toLowerCase() === bookEnName.toLowerCase());
+        const book = cat.books.find(b => b.en.toLowerCase() === searchTerm || b.th === bookName); // ชื่อไทยไม่ต้อง lowerCase เพราะมักตรงตัว
         if (book) { foundBook = book; break; }
     }
+
+    // 2. ถ้าไม่เจอ ให้ค้นหาแบบบางส่วน (Partial Match)
     if (!foundBook) {
         for (const cat of ethiopianCanon) {
-            const book = cat.books.find(b => b.en.toLowerCase().includes(bookEnName.toLowerCase()));
+            const book = cat.books.find(b => b.en.toLowerCase().includes(searchTerm) || bookName.includes(b.th));
             if (book) { foundBook = book; break; }
         }
     }
+
+    // 3. Mapping พิเศษ (ถ้าชื่อไม่ตรงกันเลย)
+    if (!foundBook) {
+        // เพิ่ม Mapping manual กรณีชื่อใน biblicalEvents ไม่ตรงกับ ethiopianCanon
+        if (bookName === "โยเบล") foundBook = findBookByEn("Jubilees");
+        else if (bookName === "หนังสือยูบิลี") foundBook = findBookByEn("Jubilees");
+        else if (bookName === "เอโนค") foundBook = findBookByEn("Enoch");
+        else if (bookName === "หนังสือเอโนค") foundBook = findBookByEn("Enoch");
+    }
+
     if (foundBook) {
         if (currentBook) { navHistory.push({ book: currentBook, chapter: currentChapter }); updateHistoryUI(); }
         selectBook(foundBook);
@@ -414,10 +442,21 @@ function openChapterFromSearch(bookEnName, chapterNum) {
             const sidebar = document.getElementById('sidebar');
             if (!sidebar.classList.contains('-translate-x-full')) toggleSidebar();
         }
-    } else { alert(`ไม่พบหนังสือ: ${bookEnName}`); }
+    } else { 
+        alert(`ไม่พบหนังสือ: ${bookName}`); 
+    }
 }
 
-// --- History ---
+// Helper หาหนังสือจากชื่ออังกฤษ
+function findBookByEn(enName) {
+    for (const cat of ethiopianCanon) {
+        const book = cat.books.find(b => b.en === enName);
+        if (book) return book;
+    }
+    return null;
+}
+
+// --- History (Code เดิม) ---
 function goBackHistory() {
     if (navHistory.length === 0) return;
     const prevState = navHistory.pop();
@@ -435,7 +474,7 @@ function updateHistoryUI() {
     }
 }
 
-// --- Verse of Day ---
+// --- Verse of Day (Code เดิม) ---
 async function loadVerseOfDay() {
     const today = new Date().toDateString();
     const savedVOD = JSON.parse(localStorage.getItem('ethiopian_vod'));
@@ -475,7 +514,7 @@ function goToVerseOfDay() {
     }
 }
 
-// --- Lesson Planner ---
+// --- Lesson Planner (Code เดิม) ---
 async function generateLesson() {
     const topic = document.getElementById('lessonTopic').value.trim();
     const platform = document.getElementById('lessonPlatform').value;
@@ -524,7 +563,7 @@ function saveCurrentLesson() {
     if (!currentGeneratedLesson) return;
     savedLessons.unshift(currentGeneratedLesson);
     localStorage.setItem('ethiopian_lessons', JSON.stringify(savedLessons));
-    syncDataToServer('lessons', savedLessons); // Sync
+    syncDataToServer('lessons', savedLessons);
     updateSavedLessonsList();
     const btn = document.getElementById('saveLessonBtn');
     const originalIcon = btn.innerHTML;
@@ -558,7 +597,7 @@ function deleteLesson(e, id) {
     if(confirm('ต้องการลบบทเรียนนี้ใช่หรือไม่?')) {
         savedLessons = savedLessons.filter(l => l.id !== id);
         localStorage.setItem('ethiopian_lessons', JSON.stringify(savedLessons));
-        syncDataToServer('lessons', savedLessons); // Sync
+        syncDataToServer('lessons', savedLessons);
         updateSavedLessonsList();
         if(currentGeneratedLesson && currentGeneratedLesson.id === id) { clearLessonView(); }
     }
@@ -574,7 +613,7 @@ function copyLesson() {
     navigator.clipboard.writeText(content).then(() => { showToast('คัดลอกเนื้อหาเรียบร้อยแล้ว'); });
 }
 
-// --- Utils ---
+// --- Utils (Code เดิม) ---
 document.getElementById('bookSearch').addEventListener('input', (e) => {
     const term = e.target.value.toLowerCase();
     document.querySelectorAll('.book-card').forEach(btn => {
