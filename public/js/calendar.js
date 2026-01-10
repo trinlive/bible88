@@ -1,5 +1,5 @@
 // public/js/calendar.js
-// Update: Add Deep Link to Bible Events & Consistent Styling
+// Update: Fix Regex priority (Prioritize brackets [Book Chapter] over normal text)
 
 // ข้อมูลปีฮีบรู (2025-2036)
 const hebrewYearInfo = {
@@ -17,7 +17,7 @@ const hebrewYearInfo = {
     "2036": { year: "5797", desc: "13 เดือน / ปีอธิกสุรทิน" }
 };
 
-// Helper: หาวันที่ปัจจุบัน (Format: YYYY-MM-DD)
+// Helper: หาวันที่ปัจจุบัน
 function getTodayString() {
     const d = new Date();
     const year = d.getFullYear();
@@ -28,15 +28,10 @@ function getTodayString() {
 
 // ฟังก์ชันระบุข้อมูลฤดูกาล
 function getSeasonInfo(monthNumber) {
-    if (monthNumber >= 1 && monthNumber <= 3) {
-        return { name: "🌱 ฤดูใบไม้ผลิ", desc: "เก็บเกี่ยวข้าวบาร์เลย์", color: "#4caf50" }; 
-    } else if (monthNumber >= 4 && monthNumber <= 6) {
-        return { name: "☀️ ฤดูร้อน", desc: "อากาศแห้ง/เก็บผลไม้", color: "#ff9800" }; 
-    } else if (monthNumber >= 7 && monthNumber <= 9) {
-        return { name: "🍂 ฤดูใบไม้ร่วง", desc: "ไถหว่าน/ฝนต้นฤดู", color: "#795548" }; 
-    } else {
-        return { name: "🌧️ ฤดูหนาว", desc: "ฝนตกหนัก/อากาศเย็น", color: "#2196f3" }; 
-    }
+    if (monthNumber >= 1 && monthNumber <= 3) return { name: "🌱 ฤดูใบไม้ผลิ", desc: "เก็บเกี่ยวข้าวบาร์เลย์", color: "#4caf50" };
+    if (monthNumber >= 4 && monthNumber <= 6) return { name: "☀️ ฤดูร้อน", desc: "อากาศแห้ง/เก็บผลไม้", color: "#ff9800" };
+    if (monthNumber >= 7 && monthNumber <= 9) return { name: "🍂 ฤดูใบไม้ร่วง", desc: "ไถหว่าน/ฝนต้นฤดู", color: "#795548" };
+    return { name: "🌧️ ฤดูหนาว", desc: "ฝนตกหนัก/อากาศเย็น", color: "#2196f3" };
 }
 
 // --- INITIALIZATION ---
@@ -130,7 +125,7 @@ function loadCalendar(year) {
             let todayRow = null;
 
             data.forEach(item => {
-                // 1. ตรวจสอบวันขึ้นเดือนใหม่ เพื่อแทรกแถบฤดูกาล (Season Header)
+                // 1. Season Header
                 if(item.lunar.day === 1) {
                     const season = getSeasonInfo(item.lunar.month);
                     const seasonRow = document.createElement('tr');
@@ -139,23 +134,17 @@ function loadCalendar(year) {
                         <td colspan="4" class="season-cell" style="background-color: ${season.color}; color: #ffffff;">
                             <div class="season-flex-container">
                                 <div class="season-left-group">
-                                    <span class="season-name">
-                                        ${season.name}
-                                    </span>
-                                    <span class="season-desc" style="color: rgba(255,255,255,0.9);">
-                                        ${season.desc}
-                                    </span>
+                                    <span class="season-name">${season.name}</span>
+                                    <span class="season-desc" style="color: rgba(255,255,255,0.9);">${season.desc}</span>
                                 </div>
-                                <div class="season-month-label">
-                                    ${item.lunar.monthName}
-                                </div>
+                                <div class="season-month-label">${item.lunar.monthName}</div>
                             </div>
                         </td>
                     `;
                     tbody.appendChild(seasonRow);
                 }
 
-                // 2. สร้างแถวข้อมูลปกติ
+                // 2. Normal Row
                 const tr = document.createElement('tr');
                 const isToday = (item.gregorianDate === todayStr);
                 const fullText = item.lunar.phase || '';
@@ -172,16 +161,14 @@ function loadCalendar(year) {
                     tr.classList.add('is-shabbath'); 
                 }
                 
-                // --- สร้างป้ายกำกับ (Phase Badges) ---
                 let phaseHtml = '';
                 if(fullText) {
                     phaseHtml = fullText.split(' / ').map(p => {
                         let cls = 'bg-default';
                         let text = p.trim();
-                        
                         if(text.includes('New Moon')) cls = 'bg-new-moon';
                         else if(text.includes('Full Moon')) cls = 'bg-full-moon';
-                        else if(text.includes('สะบาโต')) cls = 'bg-shabbath'; // ใช้สีฟ้าสะบาโต
+                        else if(text.includes('สะบาโต')) cls = 'bg-shabbath'; 
                         else if(text.includes('✨') || text.includes('ฮานุกะห์') || text.includes('ปัสกา')) {
                             cls = 'bg-feast';
                             text = text.replace('✨', '').trim();
@@ -190,24 +177,34 @@ function loadCalendar(year) {
                     }).join(' ');
                 }
 
-                // --- สร้างลิงก์เหตุการณ์พระคัมภีร์ (History Links) ---
+                // --- แก้ไข Logic การสร้างลิงก์ (สำคัญ!) ---
                 let historyHtml = '';
                 if(item.lunar.history && item.lunar.history.length > 0) {
                     historyHtml = `<ul class="history-list">` +
                         item.lunar.history.map(h => {
-                            // ใช้ Regex แยกชื่อหนังสือและบท (เช่น "Genesis 1:5")
-                            const match = h.match(/^(\d?\s?[a-zA-Z\s]+?)\s+(\d+)/);
-                            let linkUrl = "ethiopianCanon.html";
+                            let match;
+                            let linkUrl = "ethiopianCanon.html"; 
+
+                            // 1. ลองหาในวงเล็บ [] ก่อน (เช่น [โยเบล 28:13])
+                            const bracketMatch = h.match(/\[(.+?)\s+(\d+)(?::\d+)?\]/);
                             
-                            if (match) {
-                                const book = match[1].trim();
-                                const chapter = match[2];
+                            if (bracketMatch) {
+                                // ถ้าเจอในวงเล็บ ให้ใช้ค่าในวงเล็บเป็นหลัก
+                                const book = bracketMatch[1].trim(); // "โยเบล"
+                                const chapter = bracketMatch[2];     // "28"
                                 linkUrl = `ethiopianCanon.html?book=${encodeURIComponent(book)}&chapter=${chapter}`;
+                            } else {
+                                // 2. ถ้าไม่เจอในวงเล็บ ให้ลองหาแบบปกติที่ขึ้นต้นประโยค (เช่น ปฐมกาล 1)
+                                const startMatch = h.match(/^(.+?)\s+(\d+)/);
+                                if (startMatch) {
+                                    const book = startMatch[1].trim();
+                                    const chapter = startMatch[2];
+                                    linkUrl = `ethiopianCanon.html?book=${encodeURIComponent(book)}&chapter=${chapter}`;
+                                }
                             }
                             
-                            // สร้างเป็นลิงก์ <a>
                             return `<li class="history-item">
-                                <a href="${linkUrl}" style="text-decoration:none; color:inherit; border-bottom:1px dotted #aaa;">
+                                <a href="${linkUrl}" style="text-decoration:none; color:inherit; border-bottom:1px dotted #aaa; cursor:pointer;">
                                     📖 ${h}
                                 </a>
                             </li>`;
@@ -215,12 +212,11 @@ function loadCalendar(year) {
                         `</ul>`;
                 }
 
-                // --- FORMATTING DATE ---
+                // Date Formatting
                 const hDay = String(item.lunar.day).padStart(2, '0');
                 const hMonth = String(item.lunar.month).padStart(2, '0');
                 const hYear = info.year; 
 
-                // โครงสร้าง HTML ของแถว (รองรับ Mobile Flexbox)
                 tr.innerHTML = `
                     <td>
                         <div class="date-text">${item.date}</div>
@@ -241,8 +237,6 @@ function loadCalendar(year) {
             });
 
             if(loading) loading.style.display = 'none'; 
-            
-            // ใช้ค่าว่าง '' เพื่อให้ Browser ใช้ค่า display จาก CSS (block บนมือถือ, table บนคอม)
             if(table) table.style.display = ''; 
             
             if(todayRow) {
@@ -272,7 +266,5 @@ function changeYear(offset) {
     if (optionExists) {
         select.value = newVal;
         loadCalendar(newVal);
-    } else {
-        console.log("สุดขอบข้อมูลปีแล้ว: " + newVal);
     }
 }
