@@ -1,5 +1,5 @@
 // public/js/calendar.js
-// Update: Fix Mobile Safari display issue (display: '' instead of 'table')
+// Update: Add Deep Link to Bible Events & Consistent Styling
 
 // ข้อมูลปีฮีบรู (2025-2036)
 const hebrewYearInfo = {
@@ -130,7 +130,7 @@ function loadCalendar(year) {
             let todayRow = null;
 
             data.forEach(item => {
-                // Header ฤดูกาล
+                // 1. ตรวจสอบวันขึ้นเดือนใหม่ เพื่อแทรกแถบฤดูกาล (Season Header)
                 if(item.lunar.day === 1) {
                     const season = getSeasonInfo(item.lunar.month);
                     const seasonRow = document.createElement('tr');
@@ -155,7 +155,7 @@ function loadCalendar(year) {
                     tbody.appendChild(seasonRow);
                 }
 
-                // สร้างแถวข้อมูลปกติ
+                // 2. สร้างแถวข้อมูลปกติ
                 const tr = document.createElement('tr');
                 const isToday = (item.gregorianDate === todayStr);
                 const fullText = item.lunar.phase || '';
@@ -172,30 +172,55 @@ function loadCalendar(year) {
                     tr.classList.add('is-shabbath'); 
                 }
                 
+                // --- สร้างป้ายกำกับ (Phase Badges) ---
                 let phaseHtml = '';
                 if(fullText) {
                     phaseHtml = fullText.split(' / ').map(p => {
                         let cls = 'bg-default';
-                        if(p.includes('New Moon')) cls = 'bg-new-moon';
-                        else if(p.includes('Full Moon')) cls = 'bg-full-moon';
-                        else if(p.includes('สะบาโต')) cls = 'bg-shabbath';
-                        else if(p.includes('✨') || p.includes('ฮานุกะห์') || p.includes('ปัสกา')) cls = 'bg-feast';
-                        return `<span class="badge ${cls}">${p.trim()}</span>`;
+                        let text = p.trim();
+                        
+                        if(text.includes('New Moon')) cls = 'bg-new-moon';
+                        else if(text.includes('Full Moon')) cls = 'bg-full-moon';
+                        else if(text.includes('สะบาโต')) cls = 'bg-shabbath'; // ใช้สีฟ้าสะบาโต
+                        else if(text.includes('✨') || text.includes('ฮานุกะห์') || text.includes('ปัสกา')) {
+                            cls = 'bg-feast';
+                            text = text.replace('✨', '').trim();
+                        }
+                        return `<span class="badge ${cls}">${text}</span>`;
                     }).join(' ');
                 }
 
+                // --- สร้างลิงก์เหตุการณ์พระคัมภีร์ (History Links) ---
                 let historyHtml = '';
                 if(item.lunar.history && item.lunar.history.length > 0) {
                     historyHtml = `<ul class="history-list">` +
-                        item.lunar.history.map(h => `<li class="history-item">${h}</li>`).join('') + 
+                        item.lunar.history.map(h => {
+                            // ใช้ Regex แยกชื่อหนังสือและบท (เช่น "Genesis 1:5")
+                            const match = h.match(/^(\d?\s?[a-zA-Z\s]+?)\s+(\d+)/);
+                            let linkUrl = "ethiopianCanon.html";
+                            
+                            if (match) {
+                                const book = match[1].trim();
+                                const chapter = match[2];
+                                linkUrl = `ethiopianCanon.html?book=${encodeURIComponent(book)}&chapter=${chapter}`;
+                            }
+                            
+                            // สร้างเป็นลิงก์ <a>
+                            return `<li class="history-item">
+                                <a href="${linkUrl}" style="text-decoration:none; color:inherit; border-bottom:1px dotted #aaa;">
+                                    📖 ${h}
+                                </a>
+                            </li>`;
+                        }).join('') + 
                         `</ul>`;
                 }
 
+                // --- FORMATTING DATE ---
                 const hDay = String(item.lunar.day).padStart(2, '0');
                 const hMonth = String(item.lunar.month).padStart(2, '0');
                 const hYear = info.year; 
 
-                // HTML Structure พร้อม Flexbox Fix สำหรับมือถือ
+                // โครงสร้าง HTML ของแถว (รองรับ Mobile Flexbox)
                 tr.innerHTML = `
                     <td>
                         <div class="date-text">${item.date}</div>
@@ -215,10 +240,9 @@ function loadCalendar(year) {
                 tbody.appendChild(tr);
             });
 
-            // --- FIX IS HERE ---
             if(loading) loading.style.display = 'none'; 
             
-            // แก้ไข: ใช้ค่าว่าง '' เพื่อให้ Browser ใช้ค่า display จาก CSS (block บนมือถือ, table บนคอม)
+            // ใช้ค่าว่าง '' เพื่อให้ Browser ใช้ค่า display จาก CSS (block บนมือถือ, table บนคอม)
             if(table) table.style.display = ''; 
             
             if(todayRow) {

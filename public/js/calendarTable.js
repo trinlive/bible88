@@ -141,9 +141,31 @@ function renderMonth() {
 
         let eventHtml = '';
 
-        // --- 1. เหตุการณ์พระคัมภีร์ ---
+       // --- 1. เหตุการณ์พระคัมภีร์ (History) พร้อม Link เจาะจงบท ---
         if (item.lunar.history && item.lunar.history.length > 0) {
-            eventHtml += `<div class="event-icon" title="มีเหตุการณ์พระคัมภีร์">📖</div>`;
+            // ดึงรายการแรกมาทำเป็น Link
+            const firstEvent = item.lunar.history[0]; 
+            
+            // ใช้ Regex แยกชื่อหนังสือและบท (เช่น "Genesis 1:5" -> book="Genesis", chapter="1")
+            const match = firstEvent.match(/^(\d?\s?[a-zA-Z\s]+?)\s+(\d+)/);
+            
+            let linkHref = "ethiopianCanon.html";
+            if (match) {
+                const book = match[1].trim(); // เช่น "Genesis"
+                const chapter = match[2];     // เช่น "1"
+                // สร้าง URL แบบมี Query Parameters
+                linkHref = `ethiopianCanon.html?book=${encodeURIComponent(book)}&chapter=${chapter}`;
+            }
+
+            // สร้าง Link <a> แทน <div> เดิม
+            eventHtml += `
+                <a href="${linkHref}" 
+                   class="event-icon" 
+                   title="อ่านพระคัมภีร์: ${firstEvent}" 
+                   onclick="event.stopPropagation()" 
+                   style="text-decoration:none; color:inherit;">
+                   📖
+                </a>`;
         }
 
         // --- 2. ดวงจันทร์ / เทศกาล ---

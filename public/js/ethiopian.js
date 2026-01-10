@@ -514,6 +514,8 @@ function goToVerseOfDay() {
     }
 }
 
+
+
 // --- Lesson Planner (Code เดิม) ---
 async function generateLesson() {
     const topic = document.getElementById('lessonTopic').value.trim();
@@ -632,3 +634,52 @@ function showToast(msg, type = 'success') {
     toast.classList.remove('opacity-0');
     setTimeout(() => { toast.classList.add('opacity-0'); }, 3000);
 }
+// --- ส่วนที่เพิ่มใหม่: จัดการ Deep Link จากปฏิทิน ---
+
+// ฟังก์ชันอ่านค่าจาก URL (เช่น ?book=Genesis&chapter=1) และเปิดหน้านั้น
+function handleDeepLink() {
+    // 1. อ่าน Query Parameters
+    const params = new URLSearchParams(window.location.search);
+    const bookParam = params.get('book');
+    const chapterParam = params.get('chapter');
+
+    // 2. ถ้ามีข้อมูลชื่อหนังสือส่งมา
+    if (bookParam) {
+        console.log(`Deep link requesting: ${bookParam} Chapter ${chapterParam}`);
+
+        const bookSelect = document.getElementById('bookSelect');
+        const chapterSelect = document.getElementById('chapterSelect');
+
+        // 3. รอจังหวะให้ Dropdown โหลดข้อมูลเสร็จสักครู่ (500ms)
+        // จำเป็นเพราะบางทีหน้าเว็บต้องไปดึงรายการหนังสือมาเติมใส่ Dropdown ก่อน
+        setTimeout(() => {
+            if (bookSelect) {
+                let found = false;
+                
+                // วนลูปหาชื่อหนังสือใน Dropdown ที่ตรงกับ bookParam
+                for (let i = 0; i < bookSelect.options.length; i++) {
+                    // เปรียบเทียบทั้ง value และ text (เผื่อกรณีชื่อไม่ตรงเป๊ะ)
+                    if (bookSelect.options[i].value === bookParam || bookSelect.options[i].text.includes(bookParam)) {
+                        bookSelect.selectedIndex = i;
+                        // สั่งให้ Dropdown ทำงานเหมือนเรากดเลือกเอง (เพื่อไปโหลดจำนวนบท)
+                        bookSelect.dispatchEvent(new Event('change')); 
+                        found = true;
+                        break;
+                    }
+                }
+
+                // 4. ถ้าเจอหนังสือ และมีเลขบทส่งมาด้วย
+                if (found && chapterParam && chapterSelect) {
+                    // รออีกนิดนึงให้ "จำนวนบท" โหลดเสร็จก่อน ค่อยเลือกบท
+                    setTimeout(() => {
+                        chapterSelect.value = chapterParam;
+                        chapterSelect.dispatchEvent(new Event('change')); // โหลดเนื้อหาบทนั้น
+                    }, 500); 
+                }
+            }
+        }, 500); // รอ 0.5 วินาทีหลังจากโหลดหน้าเสร็จ
+    }
+}
+
+// สั่งให้ทำงานเมื่อหน้าเว็บโหลดเสร็จ
+document.addEventListener('DOMContentLoaded', handleDeepLink);
